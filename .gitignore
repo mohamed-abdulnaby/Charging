@@ -1,0 +1,16 @@
+# Compiled class files
+*.class
+
+# WAV audio recordings
+*.wav
+
+# CDR output files
+*.cdr
+*.csv
+
+# IDE files
+.idea/
+*.iml
+
+# OS files
+.DS_Store
