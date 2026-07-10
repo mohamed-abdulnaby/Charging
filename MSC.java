@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class MSC {
     private static final int TCP_PORT = 8888;
@@ -19,8 +20,7 @@ public class MSC {
     private static int elapsedMinutes = 0;
 
     public static void main(String[] args) {
-        System.out.println("Waiting for voice call");
-        System.out.println("Signaling start message via TCP");
+        System.out.println("Waiting for voice call Signaling start message via TCP");
 
         try (ServerSocket serverSocket = new ServerSocket(TCP_PORT)) {
             while (true) {
@@ -55,7 +55,11 @@ public class MSC {
     }
 
     private static void WriteAudioFile() {
-        String path = currentMsisdn + "+" + startTime + ".wav";
+	DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy_MM_dd");
+        String dateStr = startTime.format(dateFormatter);
+	DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH_mm_ss");
+        String timeStr = startTime.format(timeFormatter);
+	String path = String.format("/tmp/voice_call_msisdn_%s_date_%s_Time_%s.wav", currentMsisdn, dateStr, timeStr);
         try (DatagramSocket socket = new DatagramSocket(UDP_PORT)) {
             socket.setSoTimeout(1000);
             ByteArrayOutputStream rawAudio = new ByteArrayOutputStream();
@@ -87,12 +91,11 @@ public class MSC {
     private static void handleRealTimeCharging() {
         while (callActive) {
             try {
+                elapsedMinutes++;
+                deductBalance(currentMsisdn, CHARGE_PER_MINUTE);
                 Thread.sleep(60000);
                 if (!callActive)
                     break;
-
-                elapsedMinutes++;
-                deductBalance(currentMsisdn, CHARGE_PER_MINUTE);
             } catch (InterruptedException e) {
                 break;
             }
@@ -101,7 +104,7 @@ public class MSC {
 
     private static void deductBalance(String msisdn, double amount) {
         String query = "UPDATE Users SET Balance = Balance - ? WHERE MSISDN = ?";
-        try (Connection conn = getDatabaseConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setDouble(1, amount);
             ps.setString(2, msisdn);
@@ -113,7 +116,7 @@ public class MSC {
 
     private static double getFinalBalance(String msisdn) {
         String query = "SELECT Balance FROM Users WHERE MSISDN = ?";
-        try (Connection conn = getDatabaseConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setString(1, msisdn);
             ResultSet rs = ps.executeQuery();
@@ -136,7 +139,7 @@ public class MSC {
 
         System.out.println("Generating CDR line: " + cdrLine);
 
-        File file = new File("./calls_cdr.csv");
+        File file = new File("/tmp/calls.cdr");
         file.getParentFile().mkdirs();
         try (FileWriter fw = new FileWriter(file, true);
                 BufferedWriter bw = new BufferedWriter(fw);
@@ -145,13 +148,5 @@ public class MSC {
         } catch (IOException e) {
             System.err.println("Failed to write CDR to disk: " + e.getMessage());
         }
-    }
-
-    private static Connection getDatabaseConnection() throws Exception {
-        String url = "jdbc:postgresql://localhost:5432/charging";
-        String user = "postgres";
-        String password = "123456";
-        Class.forName("org.postgresql.Driver");
-        return DriverManager.getConnection(url, user, password);
     }
 }

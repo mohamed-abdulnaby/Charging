@@ -38,7 +38,7 @@ public class Mobile {
                 }
             }));
 
-            System.out.println("Capturing Voice from Microphone and send via UDP…..");
+            System.out.println("Capturing Voice from Microphone and send via UDP...");
 
             // 3. Start Minute Counter Thread
             new Thread(() -> {
