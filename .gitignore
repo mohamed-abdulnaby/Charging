@@ -14,3 +14,7 @@
 
 # OS files
 .DS_Store
+
+DatabaseConnection.java
+
+*.jar
