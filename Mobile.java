@@ -8,7 +8,8 @@ import java.net.Socket;
 public class Mobile {
     private static final String MSC_IP = "localhost";
     private static final int TCP_PORT = 8888;
-    private static final int UDP_PORT = 9876;
+    private static final int RTP_PORT = 5004;
+    private static final int RTP_HEADER_SIZE = 12;
     private static final int BUFFER_SIZE = 1024;
 
     private static volatile boolean isCalling = true;
@@ -21,7 +22,7 @@ public class Mobile {
         String msisdn = args[0];
 
         System.out.println("Starting voice call as MSISDN " + msisdn);
-
+        
         try {
             Socket tcpSocket = new Socket(MSC_IP, TCP_PORT);
             PrintWriter out = new PrintWriter(tcpSocket.getOutputStream(), true);
@@ -54,7 +55,7 @@ public class Mobile {
                 }
             }).start();
 
-            // 4. Voice Streaming over UDP
+            // 4. Voice Streaming over RTP
             AudioFormat format = new AudioFormat(16000, 16, 1, true, false);
             DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
 
@@ -63,14 +64,45 @@ public class Mobile {
 
                 line.open(format);
                 line.start();
+                
                 byte[] buffer = new byte[BUFFER_SIZE];
                 InetAddress mscAddress = InetAddress.getByName(MSC_IP);
-
+		
+                int sequenceNumber = 0;
+        	long timestamp = 0;
+        	int ssrc = 12345;
+		
                 while (isCalling) {
                     int bytesRead = line.read(buffer, 0, buffer.length);
                     if (bytesRead > 0) {
-                        DatagramPacket packet = new DatagramPacket(buffer, bytesRead, mscAddress, UDP_PORT);
+                    	byte[] rtpPacket = new byte[RTP_HEADER_SIZE + bytesRead];
+	            	// RTP Header
+		    	rtpPacket[0] = (byte) 0x80; // Version 2
+		    	rtpPacket[1] = (byte) 0x0B;   // Payload type
+
+		    	// Sequence Number
+		    	rtpPacket[2] = (byte) (sequenceNumber >> 8);
+		    	rtpPacket[3] = (byte) (sequenceNumber);
+
+		    	// Timestamp
+		    	rtpPacket[4] = (byte) (timestamp >> 24);
+		    	rtpPacket[5] = (byte) (timestamp >> 16);
+		    	rtpPacket[6] = (byte) (timestamp >> 8);
+		    	rtpPacket[7] = (byte) (timestamp);
+
+		    	// SSRC
+		    	rtpPacket[8] = (byte) (ssrc >> 24);
+		    	rtpPacket[9] = (byte) (ssrc >> 16);
+		    	rtpPacket[10] = (byte) (ssrc >> 8);
+		    	rtpPacket[11] = (byte) (ssrc);
+		    	
+		    	System.arraycopy(audioBuffer, 0, rtpPacket, RTP_HEADER_SIZE, bytesRead);
+		    	
+                        DatagramPacket packet = new DatagramPacket(rtpPacket, rtpPacket.length, mscAddress, RTP_PORT);
                         udpSocket.send(packet);
+                        
+                        sequenceNumber++;
+            		timestamp += bytesRead / 2;
                     }
                 }
             }
