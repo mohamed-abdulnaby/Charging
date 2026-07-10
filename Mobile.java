@@ -1,5 +1,7 @@
 import javax.sound.sampled.*;
 import java.io.PrintWriter;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -26,7 +28,16 @@ public class Mobile {
         try {
             Socket tcpSocket = new Socket(MSC_IP, TCP_PORT);
             PrintWriter out = new PrintWriter(tcpSocket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
             out.println("Start Call " + msisdn);
+            
+            String response = in.readLine();
+            int assignedUdpPort = RTP_PORT;
+            
+            if (response != null && response.startsWith("PORT ")) {
+            	assignedUdpPort = Integer.parseInt(response.split(" ")[1]);
+            	System.out.println("Assigned RTP UDP Port: " + assignedUdpPort);
+            }
 
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 try {
@@ -96,9 +107,9 @@ public class Mobile {
 		    	rtpPacket[10] = (byte) (ssrc >> 8);
 		    	rtpPacket[11] = (byte) (ssrc);
 		    	
-		    	System.arraycopy(audioBuffer, 0, rtpPacket, RTP_HEADER_SIZE, bytesRead);
+		    	System.arraycopy(buffer, 0, rtpPacket, RTP_HEADER_SIZE, bytesRead);
 		    	
-                        DatagramPacket packet = new DatagramPacket(rtpPacket, rtpPacket.length, mscAddress, RTP_PORT);
+                        DatagramPacket packet = new DatagramPacket(rtpPacket, rtpPacket.length, mscAddress, assignedUdpPort);
                         udpSocket.send(packet);
                         
                         sequenceNumber++;
