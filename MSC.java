@@ -12,8 +12,9 @@ import org.apache.logging.log4j.Logger;
 
 public class MSC {
     private static final int TCP_PORT = 8888;
-    private static final int UDP_PORT = 9876;
+    private static final int UDP_PORT = 5004;
     private static final int BUFFER_SIZE = 1024;
+    private static final int RTP_HEADER_SIZE = 12;
     private static final double CHARGE_PER_MINUTE = 1.0;
     private static final Logger cdrLogger = LogManager.getLogger("CDRLogger");
     
@@ -66,12 +67,20 @@ public class MSC {
         try (DatagramSocket socket = new DatagramSocket(UDP_PORT)) {
             socket.setSoTimeout(1000);
             ByteArrayOutputStream rawAudio = new ByteArrayOutputStream();
-            byte[] buffer = new byte[BUFFER_SIZE];
+            byte[] buffer = new byte[BUFFER_SIZE + RTP_HEADER_SIZE];
 
             while (callActive) {
                 try {
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
+                    
+                    int packetLength = packet.getLength();
+                    
+                    if (packetLength <= RTP_HEADER_SIZE) {
+                        continue;
+                    }
+                    
+                    int audioLength = packetLength - RTP_HEADER_SIZE;
                     rawAudio.write(packet.getData(), 0, packet.getLength());
                 } catch (SocketTimeoutException e) {
                     // Loop back and check callActive
