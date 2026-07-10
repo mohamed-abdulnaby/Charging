@@ -7,13 +7,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MSC {
     private static final int TCP_PORT = 8888;
     private static final int UDP_PORT = 9876;
     private static final int BUFFER_SIZE = 1024;
     private static final double CHARGE_PER_MINUTE = 1.0;
-
+    private static final Logger cdrLogger = LogManager.getLogger("CDRLogger");
+    
     private static volatile boolean callActive = false;
     private static String currentMsisdn = "";
     private static LocalDateTime startTime;
@@ -134,19 +137,11 @@ public class MSC {
         String callResult = (finalBalance == 0.0 && cost > 0) ? "user not found on DB" : "Normal call Clearing";
 
         // Format required pattern: MSISDN, Start, End, Duration, Result, Cost, Balance
-        String cdrLine = String.format("%s, %s, %s, %d, %s, %.0f, %.0f",
+        String cdrLine = String.format("%s,%s,%s,%d,%s,%.0f,%.0f",
                 currentMsisdn, startTime, endTime, elapsedMinutes, callResult, cost, finalBalance);
 
         System.out.println("Generating CDR line: " + cdrLine);
 
-        File file = new File("/tmp/calls.cdr");
-        file.getParentFile().mkdirs();
-        try (FileWriter fw = new FileWriter(file, true);
-                BufferedWriter bw = new BufferedWriter(fw);
-                PrintWriter out = new PrintWriter(bw)) {
-            out.println(cdrLine);
-        } catch (IOException e) {
-            System.err.println("Failed to write CDR to disk: " + e.getMessage());
-        }
+        cdrLogger.info(cdrLine);
     }
 }
