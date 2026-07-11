@@ -18,3 +18,5 @@
 DatabaseConnection.java
 
 *.jar
+/ChargingPortal/target/
+ChargingPortal/target/
