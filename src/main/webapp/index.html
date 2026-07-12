@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Prepaid Voice Call Charging — Admin Dashboard for managing subscriber balances, MSISDNs, and call credits." />
+  <title>Prepaid Charging Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .pulse-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: var(--emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7);
+      animation: pulse-ring 1.6s infinite;
+    }
+    @keyframes pulse-ring {
+      0% {
+        box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 8px rgba(0, 230, 118, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(0, 230, 118, 0);
+      }
+    }
+    .active-call-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px 16px;
+      transition: all 0.25s ease;
+      margin-bottom: 8px;
+    }
+    .active-call-row:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--cyan);
+    }
+    .calling-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background-color: var(--cyan-dim);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== Header ===== -->
+  <div class="container">
+    <header class="header">
+      <div class="header-logo">
+        <div class="logo-icon">📡</div>
+        <div>
+          <div class="header-title">Prepaid Charging System</div>
+          <div class="header-subtitle">Voice Call Balance Management</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== Stats ===== -->
+    <section class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <span class="stat-icon">👥</span>
+        <div class="stat-value" id="stat-total-users">0</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">💰</span>
+        <div class="stat-value" id="stat-total-balance">0.00</div>
+        <div class="stat-label">Total Balance (L.E.)</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">📊</span>
+        <div class="stat-value" id="stat-avg-balance">0.00</div>
+        <div class="stat-label">Average Balance</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">💳</span>
+        <div class="stat-value" id="stat-total-revenue">0.00</div>
+        <div class="stat-label">Total Revenue (L.E.)</div>
+      </div>
+    </section>
+
+    <!-- ===== Action Bar ===== -->
+    <div class="action-bar">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search by MSISDN..." autocomplete="off" />
+      </div>
+      <button class="btn btn-primary" id="btn-add-user" onclick="openAddModal()">
+        ＋ Add User
+      </button>
+    </div>
+
+    <!-- ===== Data Table ===== -->
+    <div class="glass-card" style="padding: 0; overflow: hidden;">
+      <div class="table-wrapper">
+        <table class="data-table" id="users-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>MSISDN</th>
+              <th>Balance (L.E.)</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <!-- Rows rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+      <!-- Empty State -->
+      <div class="empty-state" id="empty-state" style="display: none;">
+        <div class="empty-icon">📭</div>
+        <h3>No users found</h3>
+        <p>Add your first subscriber to start managing prepaid balances.</p>
+      </div>
+    </div>
+
+    <!-- ===== Active Calls Monitor ===== -->
+    <div class="glass-card" style="margin-top: 24px; padding: 20px;">
+      <h3 style="margin-top: 0; color: var(--cyan); display: flex; align-items: center; gap: 8px;">
+        <span class="pulse-indicator"></span> Active Call Monitor
+      </h3>
+      <div id="active-calls-container" style="display: flex; flex-direction: column; gap: 4px; margin-top: 15px;">
+        <!-- Dynamic active calls -->
+      </div>
+      <div id="active-calls-empty" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic; margin-top: 10px;">
+        No active calls at the moment.
+      </div>
+    </div>
+
+    <!-- ===== CDR Call History ===== -->
+    <div class="glass-card" style="margin-top: 24px; padding: 20px;">
+      <h3 style="margin-top: 0; color: var(--emerald); display: flex; align-items: center; gap: 8px;">
+        📜 Call History Logs (CDRs)
+      </h3>
+      <div class="table-wrapper" style="margin-top: 15px; max-height: 250px; overflow-y: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Subscriber</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Duration (Mins)</th>
+              <th>Cost (L.E.)</th>
+              <th>Final Balance</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="cdr-tbody">
+            <!-- CDR rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Add User Modal ===== -->
+  <div class="modal-overlay" id="modal-add">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Add Subscriber</h2>
+        <p>Create a new prepaid user account</p>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="add-msisdn">MSISDN (Phone Number)</label>
+          <input type="text" id="add-msisdn" placeholder="e.g. 01012345678" pattern="^0\d{10}$" required />
+        </div>
+        <div class="form-group">
+          <label for="add-balance">Initial Balance (L.E.)</label>
+          <input type="number" id="add-balance" placeholder="100.00" value="100" min="0" step="0.01" required />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modal-add')">Cancel</button>
+        <button class="btn btn-primary" id="btn-create" onclick="createUser()">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Edit Balance Modal ===== -->
+  <div class="modal-overlay" id="modal-edit">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Edit Balance</h2>
+        <p>Update subscriber balance</p>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-id" />
+        <div class="form-group">
+          <label for="edit-msisdn">MSISDN</label>
+          <input type="text" id="edit-msisdn" readonly />
+        </div>
+        <div class="form-group">
+          <label for="edit-balance">New Balance (L.E.)</label>
+          <input type="number" id="edit-balance" placeholder="0.00" min="0" step="0.01" required />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modal-edit')">Cancel</button>
+        <button class="btn btn-success" id="btn-save-edit" onclick="saveEdit()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Delete Confirmation Modal ===== -->
+  <div class="modal-overlay" id="modal-delete">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Delete Subscriber</h2>
+        <p>This action cannot be undone</p>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">
+          Are you sure you want to permanently remove this subscriber? All balance data will be lost.
+        </p>
+        <input type="hidden" id="delete-id" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modal-delete')">Cancel</button>
+        <button class="btn btn-danger" id="btn-confirm-delete" onclick="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Toast Container ===== -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    // ——— State ———
+    let allUsers = [];
+    let activeCalls = [];
+
+    // ——— Bootstrap ———
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUsers();
+      loadCdrHistory();
+      loadRevenue();
+      document.getElementById('search-input').addEventListener('input', handleSearch);
+
+      // Start periodic polling for active calls (every 2 seconds)
+      setInterval(pollActiveCalls, 2000);
+    });
+
+    // ——— API Calls ———
+    async function loadUsers() {
+      try {
+        const res = await fetch('/api/users');
+        if (!res.ok) throw new Error('Failed to fetch users');
+        allUsers = await res.json();
+        updateStats(allUsers);
+        renderTable(allUsers);
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to load users', 'error');
+      }
+    }
+
+    async function pollActiveCalls() {
+      try {
+        const res = await fetch('/api/calls/active');
+        if (!res.ok) throw new Error('Failed to fetch active calls');
+        activeCalls = await res.json();
+        renderActiveCalls(activeCalls);
+        
+        // If there are active calls, reload users and revenue to show live balance updates
+        if (activeCalls.length > 0) {
+          await loadUsers();
+          await loadRevenue();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadCdrHistory() {
+      try {
+        const res = await fetch('/api/calls/cdr');
+        if (!res.ok) throw new Error('Failed to fetch CDR history');
+        const cdrs = await res.json();
+        renderCdrTable(cdrs);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadRevenue() {
+      try {
+        const res = await fetch('/api/calls/revenue');
+        if (!res.ok) throw new Error('Failed to fetch revenue');
+        const data = await res.json();
+        document.getElementById('stat-total-revenue').textContent = data.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function createUser() {
+      const msisdn = document.getElementById('add-msisdn').value.trim();
+      const balance = parseFloat(document.getElementById('add-balance').value);
+
+      if (!msisdn) { showToast('MSISDN is required', 'error'); return; }
+      if (isNaN(balance) || balance < 0) { showToast('Invalid balance', 'error'); return; }
+
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ msisdn, balance })
+        });
+        if (!res.ok) throw new Error('Create failed');
+        showToast('Subscriber created successfully', 'success');
+        closeModal('modal-add');
+        document.getElementById('add-msisdn').value = '';
+        document.getElementById('add-balance').value = '100';
+        await loadUsers();
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to create subscriber', 'error');
+      }
+    }
+
+    function editUser(id) {
+      const user = allUsers.find(u => u.id === id);
+      if (!user) return;
+      document.getElementById('edit-id').value = user.id;
+      document.getElementById('edit-msisdn').value = user.msisdn;
+      document.getElementById('edit-balance').value = user.balance;
+      openModal('modal-edit');
+    }
+
+    async function saveEdit() {
+      const id = parseInt(document.getElementById('edit-id').value, 10);
+      const balance = parseFloat(document.getElementById('edit-balance').value);
+
+      if (isNaN(balance) || balance < 0) { showToast('Invalid balance', 'error'); return; }
+
+      try {
+        const res = await fetch('/api/users', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, balance })
+        });
+        if (!res.ok) throw new Error('Update failed');
+        showToast('Balance updated successfully', 'success');
+        closeModal('modal-edit');
+        await loadUsers();
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to update balance', 'error');
+      }
+    }
+
+    function deleteUser(id) {
+      document.getElementById('delete-id').value = id;
+      openModal('modal-delete');
+    }
+
+    async function confirmDelete() {
+      const id = document.getElementById('delete-id').value;
+      try {
+        const res = await fetch(`/api/users?id=${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Delete failed');
+        showToast('Subscriber deleted', 'success');
+        closeModal('modal-delete');
+        await loadUsers();
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to delete subscriber', 'error');
+      }
+    }
+
+    async function startSimulation(msisdn) {
+      try {
+        const res = await fetch('/api/calls/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ msisdn })
+        });
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Simulation start failed');
+        }
+        showToast(`Simulation started for ${msisdn}`, 'success');
+        await pollActiveCalls();
+      } catch (err) {
+        console.error(err);
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function hangupCall(msisdn) {
+      try {
+        const res = await fetch('/api/calls/hangup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ msisdn })
+        });
+        if (!res.ok) throw new Error('Hang up failed');
+        showToast(`Simulation ended for ${msisdn}`, 'success');
+        await pollActiveCalls();
+        await loadCdrHistory();
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to hang up call', 'error');
+      }
+    }
+
+    // ——— Stats ———
+    function updateStats(users) {
+      const total = users.length;
+      const totalBal = users.reduce((s, u) => s + u.balance, 0);
+      const avg = total > 0 ? totalBal / total : 0;
+
+      document.getElementById('stat-total-users').textContent = total.toLocaleString();
+      document.getElementById('stat-total-balance').textContent = totalBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('stat-avg-balance').textContent = avg.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // ——— Render Table ———
+    function renderTable(users) {
+      const tbody = document.getElementById('users-tbody');
+      const emptyState = document.getElementById('empty-state');
+      const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
+
+      const filtered = searchTerm
+        ? users.filter(u => u.msisdn.toLowerCase().includes(searchTerm))
+        : users;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.style.display = 'flex';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      tbody.innerHTML = filtered.map((user, i) => {
+        const statusClass = user.balance > 10 ? 'active' : user.balance > 0 ? 'low' : 'depleted';
+        const statusLabel = user.balance > 10 ? 'Active' : user.balance > 0 ? 'Low' : 'Depleted';
+        const formattedBalance = user.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        
+        // Check if currently calling in active sessions
+        const isCalling = activeCalls.some(c => c.msisdn === user.msisdn);
+        
+        // Sim Button logic
+        let simButtonHtml = '';
+        if (isCalling) {
+          simButtonHtml = `<button class="btn btn-danger btn-sm" onclick="hangupCall('${user.msisdn}')">🛑 Hang Up</button>`;
+        } else if (user.balance > 0) {
+          simButtonHtml = `<button class="btn btn-success btn-sm" onclick="startSimulation('${user.msisdn}')">📞 Simulate</button>`;
+        } else {
+          simButtonHtml = `<button class="btn btn-ghost btn-sm" disabled style="opacity: 0.5;">📞 Simulate</button>`;
+        }
+
+        const callingBadge = isCalling ? ` <span class="calling-badge"><span class="pulse-indicator"></span> Calling</span>` : '';
+
+        return `
+          <tr style="animation-delay: ${i * 0.04}s">
+            <td>${user.id}</td>
+            <td class="msisdn-cell">${escapeHtml(user.msisdn)}${callingBadge}</td>
+            <td class="balance-cell">${formattedBalance}</td>
+            <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+            <td>
+              <div class="actions-cell">
+                ${simButtonHtml}
+                <button class="btn btn-ghost btn-sm btn-icon" onclick="editUser(${user.id})" title="Edit balance">✏️</button>
+                <button class="btn btn-danger btn-sm btn-icon" onclick="deleteUser(${user.id})" title="Delete user">🗑️</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    // ——— Render Active Calls Monitor ———
+    function renderActiveCalls(calls) {
+      const container = document.getElementById('active-calls-container');
+      const emptyDiv = document.getElementById('active-calls-empty');
+
+      if (calls.length === 0) {
+        container.innerHTML = '';
+        emptyDiv.style.display = 'block';
+        return;
+      }
+
+      emptyDiv.style.display = 'none';
+      container.innerHTML = calls.map(call => {
+        const portStr = call.udpPort > 0 ? `UDP Port: ${call.udpPort}` : 'Web Simulation (Accelerated)';
+        return `
+          <div class="active-call-row">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="pulse-indicator"></span>
+              <div>
+                <strong style="color: var(--cyan);">${escapeHtml(call.msisdn)}</strong>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                  Session type: ${call.callType} | ${portStr}
+                </div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">${call.elapsedMinutes} mins</span>
+              <div style="font-size: 0.75rem; color: var(--emerald); margin-top: 2px;">
+                Remaining: ${call.currentBalance.toFixed(2)} L.E.
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ——— Render CDR logs Table ———
+    function renderCdrTable(cdrs) {
+      const tbody = document.getElementById('cdr-tbody');
+      if (cdrs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">No calls recorded yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = cdrs.map(cdr => {
+        return `
+          <tr>
+            <td><strong>${escapeHtml(cdr.msisdn)}</strong></td>
+            <td style="font-size: 0.82rem; color: var(--text-secondary);">${cdr.startTime.substring(0, 19)}</td>
+            <td style="font-size: 0.82rem; color: var(--text-secondary);">${cdr.endTime.substring(0, 19)}</td>
+            <td>${cdr.duration}</td>
+            <td style="color: var(--cyan); font-weight: 500;">${cdr.cost.toFixed(2)}</td>
+            <td>${cdr.finalBalance.toFixed(2)}</td>
+            <td><span class="status-badge ${cdr.result.includes('Clear') ? 'active' : 'depleted'}">${escapeHtml(cdr.result)}</span></td>
+          </tr>`;
+      }).join('');
+    }
+
+    // ——— Search ———
+    function handleSearch() {
+      renderTable(allUsers);
+    }
+
+    // ——— Modal Helpers ———
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    function openAddModal() {
+      document.getElementById('add-msisdn').value = '';
+      document.getElementById('add-balance').value = '100';
+      openModal('modal-add');
+    }
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('open');
+      });
+    });
+
+    // Close modals on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+      }
+    });
+
+    // ——— Toast ———
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span><span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('removing');
+        toast.addEventListener('animationend', () => toast.remove());
+      }, 3000);
+    }
+
+    // ——— Utilities ———
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
