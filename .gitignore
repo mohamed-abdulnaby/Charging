@@ -15,8 +15,19 @@
 # OS files
 .DS_Store
 
-DatabaseConnection.java
+# ─────────────────────────────────────────────
+# Internal/Team Documentation (Local Only)
+# ─────────────────────────────────────────────
+ONBOARDING.md
+walkthrough.md
+team_presentation.md
+*.notes
+notes/
+*.backup
 
-*.jar
-/ChargingPortal/target/
-ChargingPortal/target/
+# ─────────────────────────────────────────────
+# Credentials (Never commit)
+# ─────────────────────────────────────────────
+DatabaseConnection.java
+*.credentials
+.env
