@@ -1,0 +1,6 @@
+com/mycompany/chargingportal/DatabaseConnection.class
+com/mycompany/chargingportal/UserDAO.class
+com/mycompany/chargingportal/resources/JakartaEE11Resource.class
+com/mycompany/chargingportal/UserServlet.class
+com/mycompany/chargingportal/JakartaRestConfiguration.class
+com/mycompany/chargingportal/User.class
