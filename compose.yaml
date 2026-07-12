@@ -1,0 +1,87 @@
+# ============================================================
+# Production: Use NeonDB (cloud PostgreSQL)
+# ============================================================
+services:
+  charging-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "8888:8888"
+      - "4573:4573"
+      - "10000-10010:10000-10010/udp"
+    environment:
+      # NeonDB Primary Configuration
+      DB_URL: jdbc:postgresql://db:5432/charging
+      DB_USER: neondb_owner
+      DB_PASSWORD: ***REDACTED***
+      AGI_TOKEN: ${AGI_TOKEN:-***REDACTED***}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  asterisk:
+    image: docker.io/andrius/asterisk:latest
+    ports:
+      - "5060:5060/udp"
+      - "5060:5060/tcp"
+    volumes:
+      - ./asterisk_config:/etc/asterisk:ro
+    depends_on:
+      - charging-app
+
+# ============================================================
+# Local Development: Use Docker PostgreSQL
+# Uncomment & run: docker compose -f compose.local.yaml up
+# ============================================================
+# services:
+#   db:
+#     image: docker.io/library/postgres:16-alpine
+#     environment:
+#       POSTGRES_DB: charging
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: ***REDACTED***
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - charging_db_data:/var/lib/postgresql/data
+#       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U postgres -d charging"]
+#       interval: 5s
+#       timeout: 5s
+#       retries: 10
+#
+#   charging-app:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     ports:
+#       - "8080:8080"
+#       - "8888:8888"
+#       - "4573:4573"
+#       - "10000-10010:10000-10010/udp"
+#     environment:
+#       DB_URL: jdbc:postgresql://db:5432/charging
+#       DB_USER: postgres
+#       DB_PASSWORD: ***REDACTED***
+#       AGI_TOKEN: ***REDACTED***
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#
+#   asterisk:
+#     image: docker.io/andrius/asterisk:latest
+#     ports:
+#       - "5060:5060/udp"
+#       - "5060:5060/tcp"
+#     volumes:
+#       - ./asterisk_config:/etc/asterisk:ro
+#     depends_on:
+#       - charging-app
+#
+# volumes:
+#   charging_db_data:
