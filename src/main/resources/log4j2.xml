@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <RollingFile name="CDR_Appender" 
+                     filePattern="/tmp/calls_CDR_%d{yyyy_MM_dd_HH}.cdr">
+            <PatternLayout>
+                <Pattern>%m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+        </RollingFile>
+        
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%m%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="CDRLogger" level="info" additivity="false">
+            <AppenderRef ref="CDR_Appender"/>
+        </Logger>
+
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
