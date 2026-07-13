@@ -182,7 +182,7 @@
       <div class="modal-body">
         <div class="form-group">
           <label for="add-msisdn">MSISDN (Phone Number)</label>
-          <input type="text" id="add-msisdn" placeholder="e.g. 01012345678" pattern="^0\d{10}$" required />
+          <input type="text" id="add-msisdn" placeholder="e.g. 201001234567" pattern="^\d{8,15}$" required />
         </div>
         <div class="form-group">
           <label for="add-balance">Initial Balance (L.E.)</label>
@@ -248,6 +248,7 @@
     // ——— State ———
     let allUsers = [];
     let activeCalls = [];
+    let previousActiveCount = 0;
 
     // ——— Bootstrap ———
     document.addEventListener('DOMContentLoaded', () => {
@@ -281,11 +282,13 @@
         activeCalls = await res.json();
         renderActiveCalls(activeCalls);
         
-        // If there are active calls, reload users and revenue to show live balance updates
-        if (activeCalls.length > 0) {
+        // If there are active calls, or if a call just ended, refresh the dashboard
+        if (activeCalls.length > 0 || previousActiveCount > 0) {
           await loadUsers();
           await loadRevenue();
+          await loadCdrHistory();
         }
+        previousActiveCount = activeCalls.length;
       } catch (err) {
         console.error(err);
       }
@@ -326,7 +329,10 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ msisdn, balance })
         });
-        if (!res.ok) throw new Error('Create failed');
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Create failed');
+        }
         showToast('Subscriber created successfully', 'success');
         closeModal('modal-add');
         document.getElementById('add-msisdn').value = '';
@@ -334,7 +340,7 @@
         await loadUsers();
       } catch (err) {
         console.error(err);
-        showToast('Failed to create subscriber', 'error');
+        showToast(err.message, 'error');
       }
     }
 

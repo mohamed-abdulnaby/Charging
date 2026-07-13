@@ -19,6 +19,10 @@ public class CallServlet extends HttpServlet {
 
     private static final ConcurrentHashMap<String, WebCallSimulator> activeSimulators = new ConcurrentHashMap<>();
 
+    public static void removeSimulator(String msisdn) {
+        activeSimulators.remove(msisdn);
+    }
+
     private void setCorsHeaders(HttpServletResponse resp) {
         resp.setHeader("Access-Control-Allow-Origin", "*");
         resp.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -254,6 +258,7 @@ class WebCallSimulator implements Runnable {
             // Exit
         } finally {
             MSC.activeSessions.remove(msisdn);
+            CallServlet.removeSimulator(msisdn);
             generateCDR();
         }
     }

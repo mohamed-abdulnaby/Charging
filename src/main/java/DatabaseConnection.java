@@ -1,5 +1,6 @@
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
@@ -8,13 +9,9 @@ public class DatabaseConnection {
     private static final String DEFAULT_USER = "postgres";
     private static final String DEFAULT_PASSWORD = "***REDACTED***";
 
-    public static Connection getConnection() throws SQLException {
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("PostgreSQL JDBC Driver not found.", e);
-        }
+    private static final HikariDataSource dataSource;
 
+    static {
         // Check environment variable overrides (provided in compose.yaml or shell env)
         String envUrl = System.getenv("DB_URL");
         String url = (envUrl != null) ? envUrl : DEFAULT_URL;
@@ -26,7 +23,26 @@ public class DatabaseConnection {
         String password = (envPass != null) ? envPass : DEFAULT_PASSWORD;
 
         // Log the connection target (safely hiding the password if included in URL)
-        System.out.println("[DB] Connecting to database: " + url.replaceAll(":[^@]+@", ":****@"));
-        return DriverManager.getConnection(url, user, password);
+        System.out.println("[DB] Initializing HikariCP connection pool...");
+        System.out.println("[DB] Target URL: " + url.replaceAll(":[^@]+@", ":****@"));
+
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(url);
+        config.setUsername(user);
+        config.setPassword(password);
+        config.setDriverClassName("org.postgresql.Driver");
+
+        // Connection pool tuning configurations
+        config.setMaximumPoolSize(20); // Reuse up to 20 connections concurrently
+        config.setMinimumIdle(5);
+        config.setIdleTimeout(300000); // 5 minutes
+        config.setConnectionTimeout(20000); // 20 seconds timeout to prevent hanging calls
+        config.setLeakDetectionThreshold(5000); // 5 seconds leak detection logger
+
+        dataSource = new HikariDataSource(config);
+    }
+
+    public static Connection getConnection() throws SQLException {
+        return dataSource.getConnection();
     }
 }

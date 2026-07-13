@@ -24,7 +24,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>AsteriskAgiServlet</servlet-name>
-        <url-pattern>/api/agi/authorize</url-pattern>
+        <url-pattern>/api/agi/*</url-pattern>
     </servlet-mapping>
 
     <servlet>

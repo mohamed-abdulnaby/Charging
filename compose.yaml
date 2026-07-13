@@ -17,6 +17,7 @@ services:
       retries: 10
 
   charging-app:
+    dns: 8.8.8.8
     build:
       context: .
       dockerfile: Dockerfile
