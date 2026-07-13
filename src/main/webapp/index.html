@@ -259,6 +259,9 @@
 
       // Start periodic polling for active calls (every 2 seconds)
       setInterval(pollActiveCalls, 2000);
+
+      // Start periodic polling for background database changes (every 5 seconds)
+      setInterval(pollDatabaseUpdates, 5000);
     });
 
     // ——— API Calls ———
@@ -293,7 +296,18 @@
         console.error(err);
       }
     }
-
+    async function pollDatabaseUpdates() {
+      // If there are no active calls, poll DB changes periodically (active call polling already updates if call is live)
+      if (activeCalls.length === 0) {
+        try {
+          await loadUsers();
+          await loadRevenue();
+          await loadCdrHistory();
+        } catch (err) {
+          console.error('Telemetry refresh error:', err);
+        }
+      }
+    }
     async function loadCdrHistory() {
       try {
         const res = await fetch('/api/calls/cdr');
