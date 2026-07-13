@@ -96,78 +96,87 @@
       </div>
     </section>
 
-    <!-- ===== Action Bar ===== -->
-    <div class="action-bar">
-      <div class="search-wrapper">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="search-input" placeholder="Search by MSISDN..." autocomplete="off" />
-      </div>
-      <button class="btn btn-primary" id="btn-add-user" onclick="openAddModal()">
-        ＋ Add User
-      </button>
-    </div>
+    <!-- ===== Dashboard Grid Layout ===== -->
+    <div class="dashboard-layout">
+      <!-- Left Column: Subscriber Management -->
+      <div class="layout-column">
+        <!-- ===== Action Bar ===== -->
+        <div class="action-bar">
+          <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="Search by MSISDN..." autocomplete="off" />
+          </div>
+          <button class="btn btn-primary" id="btn-add-user" onclick="openAddModal()">
+            ＋ Add User
+          </button>
+        </div>
 
-    <!-- ===== Data Table ===== -->
-    <div class="glass-card" style="padding: 0; overflow: hidden;">
-      <div class="table-wrapper">
-        <table class="data-table" id="users-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>MSISDN</th>
-              <th>Balance (L.E.)</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="users-tbody">
-            <!-- Rows rendered by JS -->
-          </tbody>
-        </table>
+        <!-- ===== Data Table ===== -->
+        <div class="glass-card" style="padding: 0; overflow: hidden;">
+          <div class="table-wrapper" style="max-height: 520px; overflow-y: auto;">
+            <table class="data-table" id="users-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>MSISDN</th>
+                  <th>Balance (L.E.)</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <!-- Rows rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+          <!-- Empty State -->
+          <div class="empty-state" id="empty-state" style="display: none;">
+            <div class="empty-icon">📭</div>
+            <h3>No users found</h3>
+            <p>Add your first subscriber to start managing prepaid balances.</p>
+          </div>
+        </div>
       </div>
-      <!-- Empty State -->
-      <div class="empty-state" id="empty-state" style="display: none;">
-        <div class="empty-icon">📭</div>
-        <h3>No users found</h3>
-        <p>Add your first subscriber to start managing prepaid balances.</p>
-      </div>
-    </div>
 
-    <!-- ===== Active Calls Monitor ===== -->
-    <div class="glass-card" style="margin-top: 24px; padding: 20px;">
-      <h3 style="margin-top: 0; color: var(--cyan); display: flex; align-items: center; gap: 8px;">
-        <span class="pulse-indicator"></span> Active Call Monitor
-      </h3>
-      <div id="active-calls-container" style="display: flex; flex-direction: column; gap: 4px; margin-top: 15px;">
-        <!-- Dynamic active calls -->
-      </div>
-      <div id="active-calls-empty" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic; margin-top: 10px;">
-        No active calls at the moment.
-      </div>
-    </div>
+      <!-- Right Column: Active Calls & History logs -->
+      <div class="layout-column" style="gap: 24px;">
+        <!-- ===== Active Calls Monitor ===== -->
+        <div class="glass-card" style="padding: 20px;">
+          <h3 style="margin-top: 0; color: var(--cyan); display: flex; align-items: center; gap: 8px;">
+            <span class="pulse-indicator"></span> Active Call Monitor
+          </h3>
+          <div id="active-calls-container" style="display: flex; flex-direction: column; gap: 4px; margin-top: 15px;">
+            <!-- Dynamic active calls -->
+          </div>
+          <div id="active-calls-empty" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic; margin-top: 10px;">
+            No active calls at the moment.
+          </div>
+        </div>
 
-    <!-- ===== CDR Call History ===== -->
-    <div class="glass-card" style="margin-top: 24px; padding: 20px;">
-      <h3 style="margin-top: 0; color: var(--emerald); display: flex; align-items: center; gap: 8px;">
-        📜 Call History Logs (CDRs)
-      </h3>
-      <div class="table-wrapper" style="margin-top: 15px; max-height: 250px; overflow-y: auto;">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Subscriber</th>
-              <th>Start Time</th>
-              <th>End Time</th>
-              <th>Duration (Mins)</th>
-              <th>Cost (L.E.)</th>
-              <th>Final Balance</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="cdr-tbody">
-            <!-- CDR rows -->
-          </tbody>
-        </table>
+        <!-- ===== CDR Call History ===== -->
+        <div class="glass-card" style="padding: 20px;">
+          <h3 style="margin-top: 0; color: var(--emerald); display: flex; align-items: center; gap: 8px;">
+            📜 Call History Logs (CDRs)
+          </h3>
+          <div class="table-wrapper" style="margin-top: 15px; max-height: 380px; overflow-y: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Subscriber</th>
+                  <th>Start Time</th>
+                  <th>End Time</th>
+                  <th>Duration (Mins)</th>
+                  <th>Cost (L.E.)</th>
+                  <th>Final Balance</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="cdr-tbody">
+                <!-- CDR rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
