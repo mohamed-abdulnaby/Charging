@@ -90,8 +90,44 @@ public class AsteriskAgiServlet extends HttpServlet {
         } else if (pathInfo.equals("/hangup")) {
             String callerId = req.getParameter("callerid");
             if (callerId != null && !callerId.isEmpty()) {
-                // Clear active session from telemetry monitor
-                MSC.activeSessions.remove(callerId);
+                CallSessionInfo session = MSC.activeSessions.remove(callerId);
+                if (session != null) {
+                    java.time.LocalDateTime endTime = java.time.LocalDateTime.now();
+                    java.time.LocalDateTime startTime = java.time.LocalDateTime.parse(session.getStartTime());
+                    long durationSeconds = java.time.Duration.between(startTime, endTime).getSeconds();
+                    
+                    // Round call duration up to nearest minute (e.g. 15s -> 1 min)
+                    int durationMins = (int) Math.max(1, Math.ceil(durationSeconds / 60.0));
+                    double cost = durationMins * 1.0;
+                    
+                    double finalBalance = 0.0;
+                    try (Connection conn = DatabaseConnection.getConnection();
+                         PreparedStatement ps = conn.prepareStatement("SELECT balance FROM Users WHERE msisdn = ?")) {
+                        ps.setString(1, callerId);
+                        try (ResultSet rs = ps.executeQuery()) {
+                            if (rs.next()) {
+                                finalBalance = rs.getDouble("balance");
+                            }
+                        }
+                    } catch (Exception ignored) {}
+
+                    // Insert CDR log inside PostgreSQL database
+                    String insertQuery = "INSERT INTO CDRs (msisdn, start_time, end_time, duration_mins, cost, result, final_balance) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                    try (Connection conn = DatabaseConnection.getConnection();
+                         PreparedStatement ps = conn.prepareStatement(insertQuery)) {
+                        ps.setString(1, callerId);
+                        ps.setTimestamp(2, java.sql.Timestamp.valueOf(startTime));
+                        ps.setTimestamp(3, java.sql.Timestamp.valueOf(endTime));
+                        ps.setInt(4, durationMins);
+                        ps.setDouble(5, cost);
+                        ps.setString(6, "Normal call Clearing");
+                        ps.setDouble(7, finalBalance);
+                        ps.executeUpdate();
+                        System.out.println("[SIP CDR] Saved CDR in database for " + callerId + " (" + durationMins + " mins)");
+                    } catch (Exception e) {
+                        System.err.println("[SIP CDR] DB Insert Error: " + e.getMessage());
+                    }
+                }
             }
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.getWriter().write("{\"success\":true}");
