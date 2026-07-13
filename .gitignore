@@ -31,3 +31,5 @@ notes/
 DatabaseConnection.java
 *.credentials
 .env
+*. pdf
+target/
