@@ -308,6 +308,18 @@ CREATE TABLE CDRs (
 //   DB_PASSWORD: your-password
 ```
 
+### NeonDB Connection Example
+
+```bash
+# Get connection string from NeonDB Dashboard:
+# Project → Connection Details → Connection String
+# Then set environment variables:
+
+export DB_URL="postgresql://user:password@host/db?sslmode=require"
+export DB_USER="your-username"
+export DB_PASSWORD="your-password"
+```
+
 ### Environment Variable Overrides
 
 ```bash

@@ -28,7 +28,6 @@ notes/
 # ─────────────────────────────────────────────
 # Credentials (Never commit)
 # ─────────────────────────────────────────────
-DatabaseConnection.java
 *.credentials
 .env
 *. pdf
