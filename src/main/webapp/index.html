@@ -34,16 +34,19 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      padding: 12px 16px;
-      transition: all 0.25s ease;
-      margin-bottom: 8px;
+      background: rgba(8, 14, 30, 0.45);
+      border: 1px solid rgba(0, 240, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px 20px;
+      transition: all 0.2s ease;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
     .active-call-row:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.03);
+      border-color: rgba(0, 240, 255, 0.35);
+      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.12);
+      transform: translateY(-1px);
     }
     .calling-badge {
       display: inline-flex;
@@ -64,35 +67,84 @@
   <div class="container">
     <header class="header">
       <div class="header-logo">
-        <div class="logo-icon">📡</div>
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+        </div>
         <div>
           <div class="header-title">Prepaid Charging System</div>
           <div class="header-subtitle">Voice Call Balance Management</div>
+        </div>
+      </div>
+      
+      <!-- System Telemetry Status Bar -->
+      <div class="system-telemetry">
+        <div class="telemetry-item">
+          <span class="led-indicator led-green"></span>
+          DB Pool: OK
+        </div>
+        <div class="telemetry-item">
+          <span class="led-indicator led-green"></span>
+          Asterisk PBX: OK
+        </div>
+        <div class="telemetry-item">
+          <span class="led-indicator led-green"></span>
+          AGI Gateway: OK
         </div>
       </div>
     </header>
 
     <!-- ===== Stats ===== -->
     <section class="stats-grid" id="stats-grid">
+      <!-- Card 1: Total Users -->
       <div class="stat-card">
-        <span class="stat-icon">👥</span>
-        <div class="stat-value" id="stat-total-users">0</div>
-        <div class="stat-label">Total Users</div>
+        <div class="stat-card-body">
+          <div>
+            <div class="stat-value" id="stat-total-users">0</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+          <div class="stat-icon-wrapper">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+        </div>
       </div>
+
+      <!-- Card 2: Total Balance -->
       <div class="stat-card">
-        <span class="stat-icon">💰</span>
-        <div class="stat-value" id="stat-total-balance">0.00</div>
-        <div class="stat-label">Total Balance (L.E.)</div>
+        <div class="stat-card-body">
+          <div>
+            <div class="stat-value" id="stat-total-balance">0.00</div>
+            <div class="stat-label">Total Balance (L.E.)</div>
+          </div>
+          <div class="stat-icon-wrapper">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+        </div>
       </div>
+
+      <!-- Card 3: Average Balance -->
       <div class="stat-card">
-        <span class="stat-icon">📊</span>
-        <div class="stat-value" id="stat-avg-balance">0.00</div>
-        <div class="stat-label">Average Balance</div>
+        <div class="stat-card-body">
+          <div>
+            <div class="stat-value" id="stat-avg-balance">0.00</div>
+            <div class="stat-label">Average Balance</div>
+          </div>
+          <div class="stat-icon-wrapper">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          </div>
+        </div>
       </div>
+
+      <!-- Card 4: Total Revenue -->
       <div class="stat-card">
-        <span class="stat-icon">💳</span>
-        <div class="stat-value" id="stat-total-revenue">0.00</div>
-        <div class="stat-label">Total Revenue (L.E.)</div>
+        <div class="stat-card-body">
+          <div>
+            <div class="stat-value" id="stat-total-revenue">0.00</div>
+            <div class="stat-label">Total Revenue (L.E.)</div>
+          </div>
+          <div class="stat-icon-wrapper">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+          </div>
+        </div>
       </div>
     </section>
 
