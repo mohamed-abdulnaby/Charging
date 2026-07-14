@@ -29,6 +29,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    volumes:
+      - recordings_data:/tmp
 
   asterisk:
     image: docker.io/andrius/asterisk:latest
@@ -40,5 +42,9 @@ services:
       - "5070:5070/tcp"
     volumes:
       - ./asterisk_config:/etc/asterisk:ro
+      - recordings_data:/tmp
     depends_on:
       - charging-app
+
+volumes:
+  recordings_data:
