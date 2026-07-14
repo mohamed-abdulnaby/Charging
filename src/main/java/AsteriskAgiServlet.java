@@ -14,8 +14,13 @@ public class AsteriskAgiServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-        // CORS — Asterisk calls this server-to-server so wildcard isn't needed
-        resp.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
+        // CORS — dynamically allow local development origins (localhost and 127.0.0.1)
+        String origin = req.getHeader("Origin");
+        if (origin != null && (origin.contains("localhost") || origin.contains("127.0.0.1"))) {
+            resp.setHeader("Access-Control-Allow-Origin", origin);
+        } else {
+            resp.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
+        }
 
         String pathInfo = req.getPathInfo();
         if (pathInfo == null) {

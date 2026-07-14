@@ -23,22 +23,27 @@ public class CallServlet extends HttpServlet {
         activeSimulators.remove(msisdn);
     }
 
-    // CORS — restricted to same host, dashboard is served from the same origin
-    private void setCorsHeaders(HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
+    // CORS — dynamically allow local development origins (localhost and 127.0.0.1)
+    private void setCorsHeaders(HttpServletRequest req, HttpServletResponse resp) {
+        String origin = req.getHeader("Origin");
+        if (origin != null && (origin.contains("localhost") || origin.contains("127.0.0.1"))) {
+            resp.setHeader("Access-Control-Allow-Origin", origin);
+        } else {
+            resp.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
+        }
         resp.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
     }
 
     @Override
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        setCorsHeaders(resp);
+        setCorsHeaders(req, resp);
         resp.setStatus(HttpServletResponse.SC_OK);
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        setCorsHeaders(resp);
+        setCorsHeaders(req, resp);
         resp.setContentType("application/json");
 
         String pathInfo = req.getPathInfo();
@@ -113,7 +118,7 @@ public class CallServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        setCorsHeaders(resp);
+        setCorsHeaders(req, resp);
         resp.setContentType("application/json");
 
         String pathInfo = req.getPathInfo();
