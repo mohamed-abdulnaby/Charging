@@ -295,7 +295,6 @@ class WebCallSimulator implements Runnable {
     private void generateCDR() {
         LocalDateTime endTime = LocalDateTime.now();
         double cost = elapsedMinutes * 1.0;
-        double finalBalance = getFinalBalance(msisdn);
         String callResult;
         if (callResultOverride != null) {
             callResult = callResultOverride;
@@ -305,19 +304,36 @@ class WebCallSimulator implements Runnable {
             callResult = "Normal call Clearing";
         }
 
+        // one transaction: read final balance + write CDR atomically.
+        // if either step fails, both roll back — no charge without a CDR record.
+        String selectQuery = "SELECT Balance FROM Users WHERE MSISDN = ?";
         String insertQuery = "INSERT INTO CDRs (msisdn, start_time, end_time, duration_mins, cost, result, final_balance) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(insertQuery)) {
-            ps.setString(1, msisdn);
-            ps.setTimestamp(2, java.sql.Timestamp.valueOf(startTime));
-            ps.setTimestamp(3, java.sql.Timestamp.valueOf(endTime));
-            ps.setInt(4, elapsedMinutes);
-            ps.setDouble(5, cost);
-            ps.setString(6, callResult);
-            ps.setDouble(7, finalBalance);
-            ps.executeUpdate();
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                double finalBalance = 0.0;
+                try (PreparedStatement ps = conn.prepareStatement(selectQuery)) {
+                    ps.setString(1, msisdn);
+                    ResultSet rs = ps.executeQuery();
+                    if (rs.next()) finalBalance = rs.getDouble("Balance");
+                }
+                try (PreparedStatement ps = conn.prepareStatement(insertQuery)) {
+                    ps.setString(1, msisdn);
+                    ps.setTimestamp(2, java.sql.Timestamp.valueOf(startTime));
+                    ps.setTimestamp(3, java.sql.Timestamp.valueOf(endTime));
+                    ps.setInt(4, elapsedMinutes);
+                    ps.setDouble(5, cost);
+                    ps.setString(6, callResult);
+                    ps.setDouble(7, finalBalance);
+                    ps.executeUpdate();
+                }
+                conn.commit();
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            }
         } catch (Exception e) {
-            System.err.println("[WebSim " + msisdn + "] DB CDR Write Error: " + e.getMessage());
+            System.err.println("[WebSim " + msisdn + "] CDR write failed: " + e.getMessage());
         }
     }
 }

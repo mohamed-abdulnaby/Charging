@@ -237,7 +237,6 @@ class CallSession implements Runnable {
     private void generateCDR(String resultOverride) {
         LocalDateTime endTime = LocalDateTime.now();
         double cost = elapsedMinutes * CHARGE_PER_MINUTE;
-        double finalBalance = getFinalBalance(msisdn);
         String callResult;
         if (resultOverride != null) {
             callResult = resultOverride;
@@ -249,25 +248,40 @@ class CallSession implements Runnable {
             callResult = "Normal call Clearing";
         }
 
-        // Format required pattern: MSISDN, Start, End, Duration, Result, Cost, Balance
-        String cdrLine = String.format("%s,%s,%s,%d,%s,%.0f,%.0f",
-                msisdn, startTime, endTime, elapsedMinutes, callResult, cost, finalBalance);
-
-        System.out.println("Generating CDR line: " + cdrLine);
-        cdrLogger.info(cdrLine);
-
-        // Write CDR record to PostgreSQL database
+        // one transaction: read final balance + write CDR atomically.
+        // if either step fails, both roll back — no charge without a CDR record.
+        String selectQuery = "SELECT Balance FROM Users WHERE MSISDN = ?";
         String insertQuery = "INSERT INTO CDRs (msisdn, start_time, end_time, duration_mins, cost, result, final_balance) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(insertQuery)) {
-            ps.setString(1, msisdn);
-            ps.setTimestamp(2, java.sql.Timestamp.valueOf(startTime));
-            ps.setTimestamp(3, java.sql.Timestamp.valueOf(endTime));
-            ps.setInt(4, elapsedMinutes);
-            ps.setDouble(5, cost);
-            ps.setString(6, callResult);
-            ps.setDouble(7, finalBalance);
-            ps.executeUpdate();
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                double finalBalance = 0.0;
+                try (PreparedStatement ps = conn.prepareStatement(selectQuery)) {
+                    ps.setString(1, msisdn);
+                    ResultSet rs = ps.executeQuery();
+                    if (rs.next()) finalBalance = rs.getDouble("Balance");
+                }
+                try (PreparedStatement ps = conn.prepareStatement(insertQuery)) {
+                    ps.setString(1, msisdn);
+                    ps.setTimestamp(2, java.sql.Timestamp.valueOf(startTime));
+                    ps.setTimestamp(3, java.sql.Timestamp.valueOf(endTime));
+                    ps.setInt(4, elapsedMinutes);
+                    ps.setDouble(5, cost);
+                    ps.setString(6, callResult);
+                    ps.setDouble(7, finalBalance);
+                    ps.executeUpdate();
+                }
+                conn.commit();
+
+                // Format required pattern: MSISDN, Start, End, Duration, Result, Cost, Balance
+                String cdrLine = String.format("%s,%s,%s,%d,%s,%.0f,%.0f",
+                        msisdn, startTime, endTime, elapsedMinutes, callResult, cost, finalBalance);
+                System.out.println("Generating CDR line: " + cdrLine);
+                cdrLogger.info(cdrLine);
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            }
         } catch (Exception e) {
             System.err.println("[Call " + msisdn + "] DB CDR Write Error: " + e.getMessage());
         }
