@@ -1,47 +1,40 @@
 services:
-  db:
-    image: docker.io/library/postgres:16-alpine
-    environment:
-      POSTGRES_DB: charging
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ***REDACTED***
-    ports:
-      - "5433:5432" # Map container 5432 to host port 5433 to prevent conflicts with local instances
-    volumes:
-      - charging_db_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d charging"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   charging-app:
-    dns: 8.8.8.8
+    # ── Multi-stage cross-platform build ───────────────────────
+    # `build.network: host` fixes Maven Central DNS during build.
+    # Works on Docker 23+ AND Podman 4.5+.
     build:
       context: .
       dockerfile: Dockerfile
+      network: host
+    # ── Runtime dns ensures the app container can resolve ──────
+    # NeonDB (and any other internet host) from inside the bridge.
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     ports:
       - "8080:8080"
       - "8888:8888"
       - "4573:4573"
       - "10000-10010:10000-10010/udp"
     environment:
-      DB_URL: ${DB_URL:-jdbc:postgresql://db:5432/charging}
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-***REDACTED***}
-      AGI_TOKEN: ${AGI_TOKEN:-***REDACTED***}
+      # ── NeonDB (single source) ──────────────────────────────
+      # All values MUST be set in .env — no hardcoded fallbacks.
+      DB_URL: ${DB_URL:-jdbc:postgresql://ep-quiet-sunset-aszvxpyx-pooler.c-4.eu-central-1.aws.neon.tech:5432/neondb?sslmode=require&channel_binding=require}
+      DB_USER: ${DB_USER:-neondb_owner}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
+      AGI_TOKEN: ${AGI_TOKEN:?AGI_TOKEN must be set in .env}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-    depends_on:
-      db:
-        condition: service_healthy
 
   asterisk:
     image: docker.io/andrius/asterisk:latest
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     ports:
       - "5070:5070/udp"
       - "5070:5070/tcp"
@@ -49,6 +42,3 @@ services:
       - ./asterisk_config:/etc/asterisk:ro
     depends_on:
       - charging-app
-
-volumes:
-  charging_db_data:

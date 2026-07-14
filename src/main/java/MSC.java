@@ -12,7 +12,9 @@ import org.apache.logging.log4j.Logger;
 
 public class MSC {
     private static final int TCP_PORT = 8888;
-    private static int nextUdpPort = 10000;
+    // AtomicInteger for thread safety — multiple CallSession threads share this
+    private static final java.util.concurrent.atomic.AtomicInteger nextUdpPort =
+        new java.util.concurrent.atomic.AtomicInteger(10000);
     public static final java.util.concurrent.ConcurrentHashMap<String, CallSessionInfo> activeSessions = 
         new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -33,7 +35,9 @@ public class MSC {
     }
     
     private static int getNextUdpPort() {
-    	return nextUdpPort++;
+        // stay within the 10000-10010 udp range mapped in compose.yaml
+        int port = nextUdpPort.getAndUpdate(p -> p >= 10010 ? 10000 : p + 1);
+        return port;
     }
 }
 
@@ -47,6 +51,7 @@ class CallSession implements Runnable {
     private int udpPort;
     private volatile boolean callActive = false;
     private String msisdn = "";
+    private String callResultCode = null;
     private LocalDateTime startTime;
     private int elapsedMinutes = 0;
     private double currentBalance = 0.0;
@@ -84,20 +89,24 @@ class CallSession implements Runnable {
                 } else if (signal.equals("End Call")) {
                     callActive = false;
                     System.out.println("Call End after receiving end call signaling message from MSISDN " + msisdn + ", on udp port: " + udpPort );
-                    generateCDR();
+                    generateCDR("User Hang Up");
                     break;
                 }
             }
             if (callActive) {
                 callActive = false;
                 System.out.println("Call End after connection drop from MSISDN " + msisdn + ", on udp port: " + udpPort);
-                generateCDR();
+                generateCDR("Connection Lost");
+            } else if (callResultCode != null) {
+                generateCDR(null);
             }
         } catch (Exception e) {
             System.err.println("[Call " + msisdn + "] Connection error: " + e.getMessage());
             if (callActive) {
                 callActive = false;
-                generateCDR();
+                generateCDR("Connection Lost");
+            } else if (callResultCode != null) {
+                generateCDR(null);
             }
         } finally {
             if (msisdn != null && !msisdn.isEmpty()) {
@@ -184,6 +193,7 @@ class CallSession implements Runnable {
                 if (currentBalance <= 0) {
                     System.out.println("[Call " + msisdn + "] Balance exhausted. Disconnecting call...");
                     callActive = false;
+                    this.callResultCode = "Depleted";
                     try {
                         tcpSocket.close();
                     } catch (Exception ignored) {}
@@ -224,11 +234,20 @@ class CallSession implements Runnable {
         return 0.0;
     }
 
-    private void generateCDR() {
+    private void generateCDR(String resultOverride) {
         LocalDateTime endTime = LocalDateTime.now();
         double cost = elapsedMinutes * CHARGE_PER_MINUTE;
         double finalBalance = getFinalBalance(msisdn);
-        String callResult = (finalBalance == 0.0 && cost > 0) ? "user not found on DB" : "Normal call Clearing";
+        String callResult;
+        if (resultOverride != null) {
+            callResult = resultOverride;
+        } else if (callResultCode != null) {
+            callResult = callResultCode;
+        } else if (elapsedMinutes == 0) {
+            callResult = "Cancelled";
+        } else {
+            callResult = "Normal call Clearing";
+        }
 
         // Format required pattern: MSISDN, Start, End, Duration, Result, Cost, Balance
         String cdrLine = String.format("%s,%s,%s,%d,%s,%.0f,%.0f",

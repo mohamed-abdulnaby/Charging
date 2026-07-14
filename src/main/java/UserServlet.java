@@ -15,8 +15,9 @@ import com.google.gson.JsonParser;
 @WebServlet("/api/users")
 public class UserServlet extends HttpServlet {
 
+    // CORS — restricted to same host, dashboard is served from the same origin
     private void setCorsHeaders(HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", "*");
+        resp.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
         resp.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
     }

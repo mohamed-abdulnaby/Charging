@@ -11,6 +11,7 @@
 # IDE files
 .idea/
 *.iml
+nb-configuration.xml
 
 # OS files
 .DS_Store
@@ -30,5 +31,10 @@ notes/
 # ─────────────────────────────────────────────
 *.credentials
 .env
-*. pdf
+*.pdf
 target/
+
+# ─────────────────────────────────────────────
+# Legacy / removed directories
+# ─────────────────────────────────────────────
+ChargingPortal/

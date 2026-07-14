@@ -7,680 +7,882 @@
   <title>Prepaid Charging Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
-  <style>
-    .pulse-indicator {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      background-color: var(--emerald);
-      border-radius: 50%;
-      box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7);
-      animation: pulse-ring 1.6s infinite;
-    }
-    @keyframes pulse-ring {
-      0% {
-        box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7);
-      }
-      70% {
-        box-shadow: 0 0 0 8px rgba(0, 230, 118, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(0, 230, 118, 0);
-      }
-    }
-    .active-call-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(8, 14, 30, 0.45);
-      border: 1px solid rgba(0, 240, 255, 0.08);
-      border-radius: 12px;
-      padding: 16px 20px;
-      transition: all 0.2s ease;
-      margin-bottom: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-    .active-call-row:hover {
-      background: rgba(0, 240, 255, 0.03);
-      border-color: rgba(0, 240, 255, 0.35);
-      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.12);
-      transform: translateY(-1px);
-    }
-    .calling-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      background-color: var(--cyan-dim);
-      border: 1px solid var(--cyan);
-      color: var(--cyan);
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-  </style>
 </head>
 <body>
-  <!-- ===== Header ===== -->
-  <div class="container">
-    <header class="header">
-      <div class="header-logo">
-        <div class="logo-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
-        </div>
-        <div>
-          <div class="header-title">Prepaid Charging System</div>
-          <div class="header-subtitle">Voice Call Balance Management</div>
+<div class="app-shell">
+
+  <!-- ===== Fixed Left Sidebar ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-logo" title="Prepaid Charging System">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2v8"/>
+        <path d="M8 6a8 8 0 0 0 0 12"/>
+        <path d="M16 6a8 8 0 0 1 0 12"/>
+        <path d="M5 10a11 11 0 0 0 0 4"/>
+        <path d="M19 10a11 11 0 0 1 0 4"/>
+        <circle cx="12" cy="14" r="2" fill="currentColor"/>
+      </svg>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <nav class="sidebar-nav">
+      <!-- Dashboard -->
+      <a class="sidebar-nav-item active" href="#" id="nav-dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span class="sidebar-tooltip">Dashboard</span>
+      </a>
+      <!-- Subscribers -->
+      <a class="sidebar-nav-item" href="#" id="nav-subscribers">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span class="sidebar-tooltip">Subscribers</span>
+      </a>
+      <!-- Active Calls -->
+      <a class="sidebar-nav-item" href="#" id="nav-calls">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.08 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 14.92z"/>
+        </svg>
+        <span class="sidebar-tooltip">Active Calls</span>
+      </a>
+      <!-- CDR History -->
+      <a class="sidebar-nav-item" href="#" id="nav-cdr">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        <span class="sidebar-tooltip">CDR History</span>
+      </a>
+      <!-- Settings -->
+      <a class="sidebar-nav-item" href="#" id="nav-settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span class="sidebar-tooltip">Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">v1.0.0</div>
+  </aside>
+
+  <!-- ===== Main Content ===== -->
+  <div class="main-content">
+
+    <!-- ===== Top Bar ===== -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h1>Prepaid Charging System</h1>
+        <span class="top-bar-subtitle">Voice Call Balance Management</span>
+      </div>
+
+      <div class="top-bar-center" id="system-status">
+        <div class="status-pill">
+          <span class="led-dot green" id="status-led"></span>
+          <span id="status-text">System Online</span>
         </div>
       </div>
-      
-      <!-- System Telemetry Status Bar -->
-      <div class="system-telemetry">
-        <div class="telemetry-item">
-          <span class="led-indicator led-green"></span>
-          DB Pool: OK
-        </div>
-        <div class="telemetry-item">
-          <span class="led-indicator led-green"></span>
-          Asterisk PBX: OK
-        </div>
-        <div class="telemetry-item">
-          <span class="led-indicator led-green"></span>
-          AGI Gateway: OK
-        </div>
+
+      <div class="top-bar-right">
+        <div class="clock" id="live-clock">--:--:--</div>
       </div>
     </header>
 
-    <!-- ===== Stats ===== -->
-    <section class="stats-grid" id="stats-grid">
-      <!-- Card 1: Total Users -->
-      <div class="stat-card">
-        <div class="stat-card-body">
-          <div>
-            <div class="stat-value" id="stat-total-users">0</div>
-            <div class="stat-label">Total Users</div>
+    <!-- ===== Content Scroll Area ===== -->
+    <div class="content-scroll">
+
+      <!-- ===== Stats Row ===== -->
+      <section class="stats-grid" id="stats-grid">
+        <!-- Card 1: Total Users -->
+        <div class="stat-card">
+          <div class="stat-card-body">
+            <div class="stat-data">
+              <div class="stat-value" id="stat-total-users">0</div>
+              <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
           </div>
-          <div class="stat-icon-wrapper">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </div>
+
+        <!-- Card 2: Total Balance -->
+        <div class="stat-card">
+          <div class="stat-card-body">
+            <div class="stat-data">
+              <div class="stat-value" id="stat-total-balance">0.00</div>
+              <div class="stat-label">Total Balance (L.E.)</div>
+            </div>
+            <div class="stat-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
           </div>
+        </div>
+
+        <!-- Card 3: Average Balance -->
+        <div class="stat-card">
+          <div class="stat-card-body">
+            <div class="stat-data">
+              <div class="stat-value" id="stat-avg-balance">0.00</div>
+              <div class="stat-label">Average Balance</div>
+            </div>
+            <div class="stat-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+                <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Total Revenue -->
+        <div class="stat-card">
+          <div class="stat-card-body">
+            <div class="stat-data">
+              <div class="stat-value" id="stat-total-revenue">0.00</div>
+              <div class="stat-label">Total Revenue (L.E.)</div>
+            </div>
+            <div class="stat-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M15 12H9"/>
+                <path d="M12 9v6"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Dashboard Split — Left 45% / Right 55% ===== -->
+      <div class="dashboard-grid">
+
+        <!-- ===== LEFT PANEL: Subscriber Management ===== -->
+        <div class="panel-left">
+          <div class="glass-panel" style="height: 100%;">
+            <!-- Panel Header -->
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="panel-icon cyan">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </div>
+                <h2>Subscribers</h2>
+              </div>
+              <div class="panel-actions">
+                <div class="search-wrapper">
+                  <span class="search-icon-wrap">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                  </span>
+                  <input type="text" class="search-input" id="search-input" placeholder="Search MSISDN..." autocomplete="off" />
+                </div>
+                <button class="btn btn-primary btn-md" id="btn-add-user" onclick="openAddModal()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  Add User
+                </button>
+              </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="table-scroll-wrapper">
+              <table class="data-table" id="users-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>MSISDN</th>
+                    <th>Balance (L.E.)</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="users-tbody">
+                  <!-- Rows rendered by JS -->
+                </tbody>
+              </table>
+
+              <!-- Empty State -->
+              <div class="empty-state" id="empty-state" style="display: none;">
+                <div class="empty-state-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-6l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div>
+                <h3>No subscribers found</h3>
+                <p>Add your first subscriber to start managing prepaid balances.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== RIGHT PANEL: Monitoring ===== -->
+        <div class="panel-right">
+
+          <!-- Active Calls Monitor -->
+          <div class="glass-panel monitor-panel" style="flex-shrink: 0;">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="panel-icon cyan">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.08 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 14.92z"/>
+                  </svg>
+                </div>
+                <h2>Active Call Monitor</h2>
+              </div>
+              <div class="live-indicator">
+                <span class="pulse-dot cyan"></span>
+                Live
+              </div>
+            </div>
+
+            <div class="active-calls-list" id="active-calls-container">
+              <!-- Dynamic active calls -->
+            </div>
+            <div class="active-calls-empty" id="active-calls-empty">
+              No active calls at the moment.
+            </div>
+          </div>
+
+          <!-- CDR History Panel -->
+          <div class="glass-panel cdr-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="panel-icon green">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                  </svg>
+                </div>
+                <h2>CDR History</h2>
+              </div>
+            </div>
+            <div class="table-scroll-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Subscriber</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Mins</th>
+                    <th>Cost (L.E.)</th>
+                    <th>Final Bal.</th>
+                    <th>Result</th>
+                  </tr>
+                </thead>
+                <tbody id="cdr-tbody">
+                  <!-- CDR rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
+    </div><!-- /.content-scroll -->
+  </div><!-- /.main-content -->
+</div><!-- /.app-shell -->
 
-      <!-- Card 2: Total Balance -->
-      <div class="stat-card">
-        <div class="stat-card-body">
-          <div>
-            <div class="stat-value" id="stat-total-balance">0.00</div>
-            <div class="stat-label">Total Balance (L.E.)</div>
-          </div>
-          <div class="stat-icon-wrapper">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-          </div>
-        </div>
+<!-- ===== Add User Modal ===== -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Add Subscriber</h2>
+      <p>Create a new prepaid user account</p>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="add-msisdn">MSISDN (Phone Number)</label>
+        <input type="text" id="add-msisdn" placeholder="e.g. 201001234567" pattern="^\d{8,15}$" required />
       </div>
-
-      <!-- Card 3: Average Balance -->
-      <div class="stat-card">
-        <div class="stat-card-body">
-          <div>
-            <div class="stat-value" id="stat-avg-balance">0.00</div>
-            <div class="stat-label">Average Balance</div>
-          </div>
-          <div class="stat-icon-wrapper">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 4: Total Revenue -->
-      <div class="stat-card">
-        <div class="stat-card-body">
-          <div>
-            <div class="stat-value" id="stat-total-revenue">0.00</div>
-            <div class="stat-label">Total Revenue (L.E.)</div>
-          </div>
-          <div class="stat-icon-wrapper">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== Dashboard Grid Layout ===== -->
-    <div class="dashboard-layout">
-      <!-- Left Column: Subscriber Management -->
-      <div class="layout-column">
-        <!-- ===== Action Bar ===== -->
-        <div class="action-bar">
-          <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="search-input" placeholder="Search by MSISDN..." autocomplete="off" />
-          </div>
-          <button class="btn btn-primary" id="btn-add-user" onclick="openAddModal()">
-            ＋ Add User
-          </button>
-        </div>
-
-        <!-- ===== Data Table ===== -->
-        <div class="glass-card" style="padding: 0; overflow: hidden;">
-          <div class="table-wrapper" style="max-height: 520px; overflow-y: auto;">
-            <table class="data-table" id="users-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>MSISDN</th>
-                  <th>Balance (L.E.)</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="users-tbody">
-                <!-- Rows rendered by JS -->
-              </tbody>
-            </table>
-          </div>
-          <!-- Empty State -->
-          <div class="empty-state" id="empty-state" style="display: none;">
-            <div class="empty-icon">📭</div>
-            <h3>No users found</h3>
-            <p>Add your first subscriber to start managing prepaid balances.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Column: Active Calls & History logs -->
-      <div class="layout-column" style="gap: 24px;">
-        <!-- ===== Active Calls Monitor ===== -->
-        <div class="glass-card" style="padding: 20px;">
-          <h3 style="margin-top: 0; color: var(--cyan); display: flex; align-items: center; gap: 8px;">
-            <span class="pulse-indicator"></span> Active Call Monitor
-          </h3>
-          <div id="active-calls-container" style="display: flex; flex-direction: column; gap: 4px; margin-top: 15px;">
-            <!-- Dynamic active calls -->
-          </div>
-          <div id="active-calls-empty" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic; margin-top: 10px;">
-            No active calls at the moment.
-          </div>
-        </div>
-
-        <!-- ===== CDR Call History ===== -->
-        <div class="glass-card" style="padding: 20px;">
-          <h3 style="margin-top: 0; color: var(--emerald); display: flex; align-items: center; gap: 8px;">
-            📜 Call History Logs (CDRs)
-          </h3>
-          <div class="table-wrapper" style="margin-top: 15px; max-height: 380px; overflow-y: auto;">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Subscriber</th>
-                  <th>Start Time</th>
-                  <th>End Time</th>
-                  <th>Duration (Mins)</th>
-                  <th>Cost (L.E.)</th>
-                  <th>Final Balance</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="cdr-tbody">
-                <!-- CDR rows -->
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div class="form-group">
+        <label for="add-balance">Initial Balance (L.E.)</label>
+        <input type="number" id="add-balance" placeholder="100.00" value="100" min="0" step="0.01" required />
       </div>
     </div>
-  </div>
-
-  <!-- ===== Add User Modal ===== -->
-  <div class="modal-overlay" id="modal-add">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Add Subscriber</h2>
-        <p>Create a new prepaid user account</p>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="add-msisdn">MSISDN (Phone Number)</label>
-          <input type="text" id="add-msisdn" placeholder="e.g. 201001234567" pattern="^\d{8,15}$" required />
-        </div>
-        <div class="form-group">
-          <label for="add-balance">Initial Balance (L.E.)</label>
-          <input type="number" id="add-balance" placeholder="100.00" value="100" min="0" step="0.01" required />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('modal-add')">Cancel</button>
-        <button class="btn btn-primary" id="btn-create" onclick="createUser()">Create</button>
-      </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-md" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn btn-primary btn-md" id="btn-create" onclick="createUser()">Create</button>
     </div>
   </div>
+</div>
 
-  <!-- ===== Edit Balance Modal ===== -->
-  <div class="modal-overlay" id="modal-edit">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Edit Balance</h2>
-        <p>Update subscriber balance</p>
+<!-- ===== Edit Balance Modal ===== -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Edit Balance</h2>
+      <p>Update subscriber balance</p>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id" />
+      <div class="form-group">
+        <label for="edit-msisdn">MSISDN</label>
+        <input type="text" id="edit-msisdn" readonly />
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="edit-id" />
-        <div class="form-group">
-          <label for="edit-msisdn">MSISDN</label>
-          <input type="text" id="edit-msisdn" readonly />
-        </div>
-        <div class="form-group">
-          <label for="edit-balance">New Balance (L.E.)</label>
-          <input type="number" id="edit-balance" placeholder="0.00" min="0" step="0.01" required />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('modal-edit')">Cancel</button>
-        <button class="btn btn-success" id="btn-save-edit" onclick="saveEdit()">Save</button>
+      <div class="form-group">
+        <label for="edit-balance">New Balance (L.E.)</label>
+        <input type="number" id="edit-balance" placeholder="0.00" min="0" step="0.01" required />
       </div>
     </div>
-  </div>
-
-  <!-- ===== Delete Confirmation Modal ===== -->
-  <div class="modal-overlay" id="modal-delete">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Delete Subscriber</h2>
-        <p>This action cannot be undone</p>
-      </div>
-      <div class="modal-body">
-        <p style="color: var(--text-secondary); font-size: 0.92rem;">
-          Are you sure you want to permanently remove this subscriber? All balance data will be lost.
-        </p>
-        <input type="hidden" id="delete-id" />
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('modal-delete')">Cancel</button>
-        <button class="btn btn-danger" id="btn-confirm-delete" onclick="confirmDelete()">Delete</button>
-      </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-md" onclick="closeModal('modal-edit')">Cancel</button>
+      <button class="btn btn-success btn-md" id="btn-save-edit" onclick="saveEdit()">Save Changes</button>
     </div>
   </div>
+</div>
 
-  <!-- ===== Toast Container ===== -->
-  <div class="toast-container" id="toast-container"></div>
+<!-- ===== Delete Confirmation Modal ===== -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Delete Subscriber</h2>
+      <p>This action cannot be undone</p>
+    </div>
+    <div class="modal-body">
+      <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6;">
+        Are you sure you want to permanently remove this subscriber? All balance data will be lost.
+      </p>
+      <input type="hidden" id="delete-id" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-md" onclick="closeModal('modal-delete')">Cancel</button>
+      <button class="btn btn-danger btn-md" id="btn-confirm-delete" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
 
-  <script>
-    // ——— State ———
-    let allUsers = [];
-    let activeCalls = [];
-    let previousActiveCount = 0;
+<!-- ===== Toast Container ===== -->
+<div class="toast-container" id="toast-container"></div>
 
-    // ——— Bootstrap ———
-    document.addEventListener('DOMContentLoaded', () => {
-      loadUsers();
-      loadCdrHistory();
-      loadRevenue();
-      document.getElementById('search-input').addEventListener('input', handleSearch);
+<script>
+  // ——— Live Clock ———
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('live-clock').textContent = now.toLocaleTimeString('en-US', {hour12: false});
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
 
-      // Start periodic polling for active calls (every 2 seconds)
-      setInterval(pollActiveCalls, 2000);
+  // ——— State ———
+  let allUsers = [];
+  let activeCalls = [];
+  let previousActiveCount = 0;
 
-      // Start periodic polling for background database changes (every 5 seconds)
-      setInterval(pollDatabaseUpdates, 5000);
-    });
+  // ——— Bootstrap ———
+  document.addEventListener('DOMContentLoaded', () => {
+    loadUsers();
+    loadCdrHistory();
+    loadRevenue();
+    document.getElementById('search-input').addEventListener('input', handleSearch);
 
-    // ——— API Calls ———
-    async function loadUsers() {
-      try {
-        const res = await fetch('/api/users');
-        if (!res.ok) throw new Error('Failed to fetch users');
-        allUsers = await res.json();
-        updateStats(allUsers);
-        renderTable(allUsers);
-      } catch (err) {
-        console.error(err);
-        showToast('Failed to load users', 'error');
-      }
+    // Start periodic polling for active calls (every 2 seconds)
+    setInterval(pollActiveCalls, 2000);
+
+    // Live per-second ticker for active call durations (smooth wall-clock count)
+    setInterval(() => {
+      document.querySelectorAll('.active-call-duration[data-start]').forEach(el => {
+        const start = parseInt(el.dataset.start, 10);
+        const charged = parseInt(el.dataset.charged || '0', 10);
+        const realSec = Math.floor((Date.now() - start) / 1000);
+        const mm = String(Math.floor(realSec / 60)).padStart(2, '0');
+        const ss = String(realSec % 60).padStart(2, '0');
+        el.textContent = `${mm}:${ss} elapsed · ${charged} min charged`;
+      });
+    }, 1000);
+
+    // Start periodic polling for background database changes (every 5 seconds)
+    setInterval(pollDatabaseUpdates, 5000);
+  });
+
+  // ——— System status indicator ———
+  function setStatus(online, text) {
+    const led = document.getElementById('status-led');
+    const txt = document.getElementById('status-text');
+    if (!led || !txt) return;
+    led.className = online ? 'led-dot green' : 'led-dot red';
+    txt.textContent = text || (online ? 'System Online' : 'Offline');
+  }
+
+  // ——— API Calls ———
+  async function loadUsers() {
+    try {
+      const res = await fetch('/api/users');
+      if (!res.ok) throw new Error();
+      allUsers = await res.json();
+      setStatus(true, \`System Online · ${allUsers.length} subscribers\`);
+      updateStats(allUsers);
+      renderTable(allUsers);
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to load users', 'error');
     }
+  }
 
-    async function pollActiveCalls() {
-      try {
-        const res = await fetch('/api/calls/active');
-        if (!res.ok) throw new Error('Failed to fetch active calls');
-        activeCalls = await res.json();
-        renderActiveCalls(activeCalls);
-        
-        // If there are active calls, or if a call just ended, refresh the dashboard
-        if (activeCalls.length > 0 || previousActiveCount > 0) {
-          await loadUsers();
-          await loadRevenue();
-          await loadCdrHistory();
-        }
-        previousActiveCount = activeCalls.length;
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    async function pollDatabaseUpdates() {
-      // If there are no active calls, poll DB changes periodically (active call polling already updates if call is live)
-      if (activeCalls.length === 0) {
-        try {
-          await loadUsers();
-          await loadRevenue();
-          await loadCdrHistory();
-        } catch (err) {
-          console.error('Telemetry refresh error:', err);
-        }
-      }
-    }
-    async function loadCdrHistory() {
-      try {
-        const res = await fetch('/api/calls/cdr');
-        if (!res.ok) throw new Error('Failed to fetch CDR history');
-        const cdrs = await res.json();
-        renderCdrTable(cdrs);
-      } catch (err) {
-        console.error(err);
-      }
-    }
+  async function pollActiveCalls() {
+    try {
+      const res = await fetch('/api/calls/active');
+      if (!res.ok) throw new Error('Failed to fetch active calls');
+      activeCalls = await res.json();
+      renderActiveCalls(activeCalls);
 
-    async function loadRevenue() {
-      try {
-        const res = await fetch('/api/calls/revenue');
-        if (!res.ok) throw new Error('Failed to fetch revenue');
-        const data = await res.json();
-        document.getElementById('stat-total-revenue').textContent = data.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function createUser() {
-      const msisdn = document.getElementById('add-msisdn').value.trim();
-      const balance = parseFloat(document.getElementById('add-balance').value);
-
-      if (!msisdn) { showToast('MSISDN is required', 'error'); return; }
-      if (isNaN(balance) || balance < 0) { showToast('Invalid balance', 'error'); return; }
-
-      try {
-        const res = await fetch('/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ msisdn, balance })
-        });
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.error || 'Create failed');
-        }
-        showToast('Subscriber created successfully', 'success');
-        closeModal('modal-add');
-        document.getElementById('add-msisdn').value = '';
-        document.getElementById('add-balance').value = '100';
+      // If there are active calls, or if a call just ended, refresh the dashboard
+      if (activeCalls.length > 0 || previousActiveCount > 0) {
         await loadUsers();
-      } catch (err) {
-        console.error(err);
-        showToast(err.message, 'error');
+        await loadRevenue();
+        await loadCdrHistory();
       }
+      previousActiveCount = activeCalls.length;
+    } catch (err) {
+      console.error(err);
     }
+  }
 
-    function editUser(id) {
-      const user = allUsers.find(u => u.id === id);
-      if (!user) return;
-      document.getElementById('edit-id').value = user.id;
-      document.getElementById('edit-msisdn').value = user.msisdn;
-      document.getElementById('edit-balance').value = user.balance;
-      openModal('modal-edit');
-    }
-
-    async function saveEdit() {
-      const id = parseInt(document.getElementById('edit-id').value, 10);
-      const balance = parseFloat(document.getElementById('edit-balance').value);
-
-      if (isNaN(balance) || balance < 0) { showToast('Invalid balance', 'error'); return; }
-
+  async function pollDatabaseUpdates() {
+    // If there are no active calls, poll DB changes periodically
+    if (activeCalls.length === 0) {
       try {
-        const res = await fetch('/api/users', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, balance })
-        });
-        if (!res.ok) throw new Error('Update failed');
-        showToast('Balance updated successfully', 'success');
-        closeModal('modal-edit');
         await loadUsers();
-      } catch (err) {
-        console.error(err);
-        showToast('Failed to update balance', 'error');
-      }
-    }
-
-    function deleteUser(id) {
-      document.getElementById('delete-id').value = id;
-      openModal('modal-delete');
-    }
-
-    async function confirmDelete() {
-      const id = document.getElementById('delete-id').value;
-      try {
-        const res = await fetch(`/api/users?id=${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Delete failed');
-        showToast('Subscriber deleted', 'success');
-        closeModal('modal-delete');
-        await loadUsers();
-      } catch (err) {
-        console.error(err);
-        showToast('Failed to delete subscriber', 'error');
-      }
-    }
-
-    async function startSimulation(msisdn) {
-      try {
-        const res = await fetch('/api/calls/simulate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ msisdn })
-        });
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.error || 'Simulation start failed');
-        }
-        showToast(`Simulation started for ${msisdn}`, 'success');
-        await pollActiveCalls();
-      } catch (err) {
-        console.error(err);
-        showToast(err.message, 'error');
-      }
-    }
-
-    async function hangupCall(msisdn) {
-      try {
-        const res = await fetch('/api/calls/hangup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ msisdn })
-        });
-        if (!res.ok) throw new Error('Hang up failed');
-        showToast(`Simulation ended for ${msisdn}`, 'success');
-        await pollActiveCalls();
+        await loadRevenue();
         await loadCdrHistory();
       } catch (err) {
-        console.error(err);
-        showToast('Failed to hang up call', 'error');
+        console.error('Telemetry refresh error:', err);
       }
     }
+  }
 
-    // ——— Stats ———
-    function updateStats(users) {
-      const total = users.length;
-      const totalBal = users.reduce((s, u) => s + u.balance, 0);
-      const avg = total > 0 ? totalBal / total : 0;
-
-      document.getElementById('stat-total-users').textContent = total.toLocaleString();
-      document.getElementById('stat-total-balance').textContent = totalBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      document.getElementById('stat-avg-balance').textContent = avg.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  async function loadCdrHistory() {
+    try {
+      const res = await fetch('/api/calls/cdr');
+      if (!res.ok) throw new Error('Failed to fetch CDR history');
+      const cdrs = await res.json();
+      renderCdrTable(cdrs);
+    } catch (err) {
+      console.error(err);
     }
+  }
 
-    // ——— Render Table ———
-    function renderTable(users) {
-      const tbody = document.getElementById('users-tbody');
-      const emptyState = document.getElementById('empty-state');
-      const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
+  async function loadRevenue() {
+    try {
+      const res = await fetch('/api/calls/revenue');
+      if (!res.ok) throw new Error('Failed to fetch revenue');
+      const data = await res.json();
+      document.getElementById('stat-total-revenue').textContent = data.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
-      const filtered = searchTerm
-        ? users.filter(u => u.msisdn.toLowerCase().includes(searchTerm))
-        : users;
+  async function createUser() {
+    const msisdn = document.getElementById('add-msisdn').value.trim();
+    const balance = parseFloat(document.getElementById('add-balance').value);
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = '';
-        emptyState.style.display = 'flex';
-        return;
+    if (!msisdn) { showToast('MSISDN is required', 'error'); return; }
+    if (isNaN(balance) || balance < 0) { showToast('Invalid balance', 'error'); return; }
+
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ msisdn, balance })
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Create failed');
       }
-
-      emptyState.style.display = 'none';
-      tbody.innerHTML = filtered.map((user, i) => {
-        const statusClass = user.balance > 10 ? 'active' : user.balance > 0 ? 'low' : 'depleted';
-        const statusLabel = user.balance > 10 ? 'Active' : user.balance > 0 ? 'Low' : 'Depleted';
-        const formattedBalance = user.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        
-        // Check if currently calling in active sessions
-        const isCalling = activeCalls.some(c => c.msisdn === user.msisdn);
-        
-        // Sim Button logic
-        let simButtonHtml = '';
-        if (isCalling) {
-          simButtonHtml = `<button class="btn btn-danger btn-sm" onclick="hangupCall('${user.msisdn}')">🛑 Hang Up</button>`;
-        } else if (user.balance > 0) {
-          simButtonHtml = `<button class="btn btn-success btn-sm" onclick="startSimulation('${user.msisdn}')">📞 Simulate</button>`;
-        } else {
-          simButtonHtml = `<button class="btn btn-ghost btn-sm" disabled style="opacity: 0.5;">📞 Simulate</button>`;
-        }
-
-        const callingBadge = isCalling ? ` <span class="calling-badge"><span class="pulse-indicator"></span> Calling</span>` : '';
-
-        return `
-          <tr style="animation-delay: ${i * 0.04}s">
-            <td>${user.id}</td>
-            <td class="msisdn-cell">${escapeHtml(user.msisdn)}${callingBadge}</td>
-            <td class="balance-cell">${formattedBalance}</td>
-            <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
-            <td>
-              <div class="actions-cell">
-                ${simButtonHtml}
-                <button class="btn btn-ghost btn-sm btn-icon" onclick="editUser(${user.id})" title="Edit balance">✏️</button>
-                <button class="btn btn-danger btn-sm btn-icon" onclick="deleteUser(${user.id})" title="Delete user">🗑️</button>
-              </div>
-            </td>
-          </tr>`;
-      }).join('');
-    }
-
-    // ——— Render Active Calls Monitor ———
-    function renderActiveCalls(calls) {
-      const container = document.getElementById('active-calls-container');
-      const emptyDiv = document.getElementById('active-calls-empty');
-
-      if (calls.length === 0) {
-        container.innerHTML = '';
-        emptyDiv.style.display = 'block';
-        return;
-      }
-
-      emptyDiv.style.display = 'none';
-      container.innerHTML = calls.map(call => {
-        const portStr = call.udpPort > 0 ? `UDP Port: ${call.udpPort}` : 'Web Simulation (Accelerated)';
-        return `
-          <div class="active-call-row">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <span class="pulse-indicator"></span>
-              <div>
-                <strong style="color: var(--cyan);">${escapeHtml(call.msisdn)}</strong>
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
-                  Session type: ${call.callType} | ${portStr}
-                </div>
-              </div>
-            </div>
-            <div style="text-align: right;">
-              <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">${call.elapsedMinutes} mins</span>
-              <div style="font-size: 0.75rem; color: var(--emerald); margin-top: 2px;">
-                Remaining: ${call.currentBalance.toFixed(2)} L.E.
-              </div>
-            </div>
-          </div>`;
-      }).join('');
-    }
-
-    // ——— Render CDR logs Table ———
-    function renderCdrTable(cdrs) {
-      const tbody = document.getElementById('cdr-tbody');
-      if (cdrs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">No calls recorded yet.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = cdrs.map(cdr => {
-        return `
-          <tr>
-            <td><strong>${escapeHtml(cdr.msisdn)}</strong></td>
-            <td style="font-size: 0.82rem; color: var(--text-secondary);">${cdr.startTime.substring(0, 19)}</td>
-            <td style="font-size: 0.82rem; color: var(--text-secondary);">${cdr.endTime.substring(0, 19)}</td>
-            <td>${cdr.duration}</td>
-            <td style="color: var(--cyan); font-weight: 500;">${cdr.cost.toFixed(2)}</td>
-            <td>${cdr.finalBalance.toFixed(2)}</td>
-            <td><span class="status-badge ${cdr.result.includes('Clear') ? 'active' : 'depleted'}">${escapeHtml(cdr.result)}</span></td>
-          </tr>`;
-      }).join('');
-    }
-
-    // ——— Search ———
-    function handleSearch() {
-      renderTable(allUsers);
-    }
-
-    // ——— Modal Helpers ———
-    function openModal(id) {
-      document.getElementById(id).classList.add('open');
-    }
-
-    function closeModal(id) {
-      document.getElementById(id).classList.remove('open');
-    }
-
-    function openAddModal() {
+      showToast('Subscriber created successfully', 'success');
+      closeModal('modal-add');
       document.getElementById('add-msisdn').value = '';
       document.getElementById('add-balance').value = '100';
-      openModal('modal-add');
+      await loadUsers();
+    } catch (err) {
+      console.error(err);
+      showToast(err.message, 'error');
     }
+  }
 
-    // Close modals on overlay click
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) overlay.classList.remove('open');
+  function editUser(id) {
+    const user = allUsers.find(u => u.id === id);
+    if (!user) return;
+    document.getElementById('edit-id').value = user.id;
+    document.getElementById('edit-msisdn').value = user.msisdn;
+    document.getElementById('edit-balance').value = user.balance;
+    openModal('modal-edit');
+  }
+
+  async function saveEdit() {
+    const id = parseInt(document.getElementById('edit-id').value, 10);
+    const balance = parseFloat(document.getElementById('edit-balance').value);
+
+    if (isNaN(balance) || balance < 0) { showToast('Invalid balance', 'error'); return; }
+
+    try {
+      const res = await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, balance })
       });
+      if (!res.ok) throw new Error('Update failed');
+      showToast('Balance updated successfully', 'success');
+      closeModal('modal-edit');
+      await loadUsers();
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to update balance', 'error');
+    }
+  }
+
+  function deleteUser(id) {
+    document.getElementById('delete-id').value = id;
+    openModal('modal-delete');
+  }
+
+  async function confirmDelete() {
+    const id = document.getElementById('delete-id').value;
+    try {
+      const res = await fetch(`/api/users?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
+      showToast('Subscriber deleted', 'success');
+      closeModal('modal-delete');
+      await loadUsers();
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to delete subscriber', 'error');
+    }
+  }
+
+  async function startSimulation(msisdn) {
+    try {
+      const res = await fetch('/api/calls/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ msisdn })
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Simulation start failed');
+      }
+      showToast(`Simulation started for ${msisdn}`, 'success');
+      await pollActiveCalls();
+    } catch (err) {
+      console.error(err);
+      showToast(err.message, 'error');
+    }
+  }
+
+  async function hangupCall(msisdn) {
+    try {
+      const res = await fetch('/api/calls/hangup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ msisdn })
+      });
+      if (!res.ok) throw new Error('Hang up failed');
+      showToast(`Simulation ended for ${msisdn}`, 'success');
+      await pollActiveCalls();
+      await loadCdrHistory();
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to hang up call', 'error');
+    }
+  }
+
+  // ——— Stats ———
+  function updateStats(users) {
+    const total = users.length;
+    const totalBal = users.reduce((s, u) => s + u.balance, 0);
+    const avg = total > 0 ? totalBal / total : 0;
+
+    document.getElementById('stat-total-users').textContent = total.toLocaleString();
+    document.getElementById('stat-total-balance').textContent = totalBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('stat-avg-balance').textContent = avg.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // ——— Render Table (in-place diff — no full re-render flash) ———
+  function renderTable(users) {
+    const tbody = document.getElementById('users-tbody');
+    const emptyState = document.getElementById('empty-state');
+    const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
+
+    const filtered = searchTerm
+      ? users.filter(u => u.msisdn.toLowerCase().includes(searchTerm))
+      : users;
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '';
+      emptyState.style.display = 'flex';
+      return;
+    }
+    emptyState.style.display = 'none';
+
+    // Build map of DOM rows keyed by user id
+    const existingRows = {};
+    tbody.querySelectorAll('tr[data-uid]').forEach(r => { existingRows[r.dataset.uid] = r; });
+    const newIds = new Set(filtered.map(u => String(u.id)));
+
+    // Remove rows no longer in the filtered list
+    Object.keys(existingRows).forEach(id => {
+      if (!newIds.has(id)) existingRows[id].remove();
     });
 
-    // Close modals on Escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+    filtered.forEach((user, i) => {
+      const statusClass = user.balance > 10 ? 'active' : user.balance > 0 ? 'low' : 'depleted';
+      const statusLabel = user.balance > 10 ? 'Active' : user.balance > 0 ? 'Low' : 'Depleted';
+      const formattedBalance = user.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const isCalling = activeCalls.some(c => c.msisdn === user.msisdn);
+
+      const existingRow = existingRows[String(user.id)];
+
+      if (existingRow) {
+        // ── Patch only the cells that changed ──
+
+        // Balance
+        const balCell = existingRow.querySelector('.balance-cell');
+        if (balCell && balCell.textContent !== formattedBalance) balCell.textContent = formattedBalance;
+
+        // Status badge
+        const badge = existingRow.querySelector('.status-badge');
+        if (badge) { badge.className = `status-badge ${statusClass}`; badge.textContent = statusLabel; }
+
+        // Calling badge (add/remove without touching the MSISDN text)
+        const msisdnCell = existingRow.querySelector('.msisdn-cell');
+        if (msisdnCell) {
+          const existingBadge = msisdnCell.querySelector('.calling-badge');
+          if (isCalling && !existingBadge) {
+            msisdnCell.insertAdjacentHTML('beforeend', ' <span class="calling-badge"><span class="pulse-indicator"></span> Calling</span>');
+          } else if (!isCalling && existingBadge) {
+            existingBadge.remove();
+          }
+        }
+
+        // Simulate / Hang Up button
+        const actionsDiv = existingRow.querySelector('.actions-cell');
+        if (actionsDiv) {
+          const firstBtn = actionsDiv.querySelector('button:first-child');
+          const wasHangup  = firstBtn && firstBtn.classList.contains('btn-danger') && firstBtn.textContent.includes('Hang');
+          const wasSimulate = firstBtn && firstBtn.classList.contains('btn-success');
+          const wasDisabled = firstBtn && firstBtn.disabled;
+          const needsHangup  = isCalling;
+          const needsSimulate = !isCalling && user.balance > 0;
+          const needsDisabled = !isCalling && user.balance <= 0;
+          if (needsHangup && !wasHangup) {
+            firstBtn.outerHTML = `<button class="btn btn-danger btn-sm" onclick="hangupCall('${user.msisdn}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 15.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/><path d="M19 12v-2a2 2 0 0 0-2-2h-2"/><path d="M2 2l20 20"/></svg> Hang Up</button>`;
+          } else if (needsSimulate && !wasSimulate) {
+            firstBtn.outerHTML = `<button class="btn btn-success btn-sm" onclick="startSimulation('${user.msisdn}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.08 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 14.92z"/></svg> Simulate</button>`;
+          } else if (needsDisabled && !wasDisabled) {
+            firstBtn.outerHTML = `<button class="btn btn-ghost btn-sm" disabled style="opacity:0.4;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.08 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 14.92z"/></svg> Simulate</button>`;
+          }
+        }
+
+      } else {
+        // ── Insert brand-new row ──
+        let simButtonHtml = isCalling
+          ? `<button class="btn btn-danger btn-sm" onclick="hangupCall('${user.msisdn}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 15.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/><path d="M19 12v-2a2 2 0 0 0-2-2h-2"/><path d="M2 2l20 20"/></svg> Hang Up</button>`
+          : user.balance > 0
+            ? `<button class="btn btn-success btn-sm" onclick="startSimulation('${user.msisdn}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.08 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 14.92z"/></svg> Simulate</button>`
+            : `<button class="btn btn-ghost btn-sm" disabled style="opacity:0.4;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.08 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 14.92z"/></svg> Simulate</button>`;
+        const callingBadge = isCalling
+          ? ' <span class="calling-badge"><span class="pulse-indicator"></span> Calling</span>' : '';
+
+        const tr = document.createElement('tr');
+        tr.dataset.uid = user.id;
+        tr.style.animationDelay = `${i * 0.04}s`;
+        tr.innerHTML = `
+          <td>${user.id}</td>
+          <td><div class="msisdn-cell">${escapeHtml(user.msisdn)}${callingBadge}</div></td>
+          <td class="balance-cell">${formattedBalance}</td>
+          <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+          <td>
+            <div class="actions-cell">
+              ${simButtonHtml}
+              <button class="btn btn-ghost btn-sm btn-icon-only" onclick="editUser(${user.id})" title="Edit balance" style="font-size:0.85rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button class="btn btn-danger btn-sm btn-icon-only" onclick="deleteUser(${user.id})" title="Delete user" style="font-size:0.85rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+          </td>`;
+        tbody.appendChild(tr);
       }
     });
+  }
 
-    // ——— Toast ———
-    function showToast(message, type = 'success') {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span><span>${escapeHtml(message)}</span>`;
-      container.appendChild(toast);
+  // ——— Render Active Calls Monitor (in-place patch — no re-render flash) ———
+  function renderActiveCalls(calls) {
+    const container = document.getElementById('active-calls-container');
+    const emptyDiv  = document.getElementById('active-calls-empty');
 
-      setTimeout(() => {
-        toast.classList.add('removing');
-        toast.addEventListener('animationend', () => toast.remove());
-      }, 3000);
+    if (calls.length === 0) {
+      container.innerHTML = '';
+      emptyDiv.style.display = 'block';
+      return;
+    }
+    emptyDiv.style.display = 'none';
+
+    // Build map of existing call cards by msisdn
+    const existingCards = {};
+    container.querySelectorAll('.active-call-row[data-msisdn]').forEach(el => {
+      existingCards[el.dataset.msisdn] = el;
+    });
+    const activeSet = new Set(calls.map(c => c.msisdn));
+
+    // Remove cards for calls that ended
+    Object.keys(existingCards).forEach(msisdn => {
+      if (!activeSet.has(msisdn)) existingCards[msisdn].remove();
+    });
+
+    calls.forEach(call => {
+      const portStr = call.udpPort > 0 ? `UDP Port: ${call.udpPort}` : 'Web Simulation';
+      const existing = existingCards[call.msisdn];
+      if (existing) {
+        // Patch only the live-changing fields
+        const durEl = existing.querySelector('.active-call-duration');
+        if (durEl) {
+          durEl.dataset.start = String(call.startTimeEpoch || Date.now());
+          durEl.dataset.charged = String(call.elapsedMinutes);
+        }
+        const balEl = existing.querySelector('.active-call-balance');
+        if (balEl) balEl.textContent = `Remaining: ${call.currentBalance.toFixed(2)} L.E.`;
+      } else {
+        const div = document.createElement('div');
+        div.className = 'active-call-row';
+        div.dataset.msisdn = call.msisdn;
+        div.innerHTML = `
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="pulse-indicator"></span>
+            <div>
+              <div class="active-call-msisdn">${escapeHtml(call.msisdn)}</div>
+              <div class="active-call-meta">Session: ${call.callType} &bull; ${portStr}</div>
+            </div>
+          </div>
+          <div class="active-call-right">
+            <div class="active-call-duration" data-start="${call.startTimeEpoch || Date.now()}" data-charged="${call.elapsedMinutes}">
+                  00:00 elapsed · ${call.elapsedMinutes} min charged
+                </div>
+            <div class="active-call-balance">Remaining: ${call.currentBalance.toFixed(2)} L.E.</div>
+          </div>`;
+        container.appendChild(div);
+      }
+    });
+  }
+
+  // ——— Render CDR logs Table (append-only — never re-renders existing rows) ———
+  let _knownCdrKey = null;  // tracks the key of the most-recent CDR we've rendered
+
+  function _cdrRowHtml(cdr) {
+    // Result badge: green=clean end, amber=early/cancelled, red=depleted/error
+    let resultClass = 'active';  // Normal call Clearing or User Hang Up
+    if (cdr.result === 'Depleted' || cdr.result.includes('Error') || cdr.result.includes('Lost')) resultClass = 'depleted';
+    else if (cdr.result === 'Call Aborted' || cdr.result === 'Cancelled' || cdr.result.includes('Reject')) resultClass = 'low';
+    return `<tr data-cdr-key="${escapeHtml(cdr.msisdn + cdr.startTime)}">
+      <td style="font-family:var(--font-mono);font-weight:600;color:var(--text-primary);">${escapeHtml(cdr.msisdn)}</td>
+      <td style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono);">${cdr.startTime.substring(0, 19)}</td>
+      <td style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono);">${cdr.endTime.substring(0, 19)}</td>
+      <td style="font-family:var(--font-mono);">${cdr.duration}</td>
+      <td style="color:var(--cyan);font-weight:600;font-family:var(--font-mono);">${cdr.cost.toFixed(2)}</td>
+      <td style="font-family:var(--font-mono);">${cdr.finalBalance.toFixed(2)}</td>
+      <td><span class="status-badge ${resultClass}">${escapeHtml(cdr.result)}</span></td>
+    </tr>`;
+  }
+
+  function renderCdrTable(cdrs) {
+    const tbody = document.getElementById('cdr-tbody');
+    if (cdrs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:32px;font-style:italic;">No calls recorded yet.</td></tr>`;
+      _knownCdrKey = null;
+      return;
     }
 
-    // ——— Utilities ———
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
+    // First load — render everything
+    if (_knownCdrKey === null) {
+      tbody.innerHTML = cdrs.map(_cdrRowHtml).join('');
+      _knownCdrKey = cdrs[0].msisdn + cdrs[0].startTime;  // API returns newest-first
+      return;
     }
-  </script>
+
+    // Find how many new rows appeared at the top since last render
+    const newRows = [];
+    for (const cdr of cdrs) {
+      const key = cdr.msisdn + cdr.startTime;
+      if (key === _knownCdrKey) break;
+      newRows.push(cdr);
+    }
+    if (newRows.length > 0) {
+      tbody.insertAdjacentHTML('afterbegin', newRows.map(_cdrRowHtml).join(''));
+      _knownCdrKey = cdrs[0].msisdn + cdrs[0].startTime;
+    }
+  }
+
+  // ——— Search ———
+  function handleSearch() {
+    renderTable(allUsers);
+  }
+
+  // ——— Modal Helpers ———
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  function openAddModal() {
+    document.getElementById('add-msisdn').value = '';
+    document.getElementById('add-balance').value = '100';
+    openModal('modal-add');
+  }
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  });
+
+  // Close modals on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+    }
+  });
+
+  // ——— Toast ———
+  function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success'
+      ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+      : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    toast.innerHTML = `<span style="display:flex;align-items:center">${icon}</span><span>${escapeHtml(message)}</span>`;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('removing');
+      toast.addEventListener('animationend', () => toast.remove());
+    }, 3000);
+  }
+
+  // ——— Utilities ———
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+</script>
 </body>
 </html>

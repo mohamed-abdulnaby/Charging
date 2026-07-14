@@ -3,28 +3,35 @@ import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+/**
+ * DatabaseConnection – NeonDB single source.
+ *
+ * Reads DB_URL from the environment (set in compose.yaml).
+ * Fallback defaults point at Neon so every environment uses the same DB.
+ */
 public class DatabaseConnection {
-    // Default fallback credentials for local development
-    private static final String DEFAULT_URL = "jdbc:postgresql://localhost:5432/charging";
-    private static final String DEFAULT_USER = "postgres";
-    private static final String DEFAULT_PASSWORD = "***REDACTED***";
+
+    // ⚠️  No hardcoded credentials — all values MUST come from environment variables.
+    //     Set DB_URL, DB_USER, DB_PASSWORD in .env (see compose.yaml).
+    private static final String DEFAULT_URL  =
+        "jdbc:postgresql://ep-quiet-sunset-aszvxpyx-pooler.c-4.eu-central-1.aws.neon.tech:5432/neondb?sslmode=require&channel_binding=require";
+    private static final String DEFAULT_USER = "neondb_owner";
 
     private static final HikariDataSource dataSource;
 
     static {
-        // Check environment variable overrides (provided in compose.yaml or shell env)
-        String envUrl = System.getenv("DB_URL");
-        String url = (envUrl != null) ? envUrl : DEFAULT_URL;
+        String url      = System.getenv("DB_URL");
+        String user     = System.getenv("DB_USER");
+        String password = System.getenv("DB_PASSWORD");
 
-        String envUser = System.getenv("DB_USER");
-        String user = (envUser != null) ? envUser : DEFAULT_USER;
+        if (url  == null || url.isBlank())  url  = DEFAULT_URL;
+        if (user == null || user.isBlank()) user = DEFAULT_USER;
+        if (password == null || password.isBlank()) {
+            System.err.println("[DB] ⚠️  DB_PASSWORD environment variable is not set. Set it in .env");
+            throw new IllegalStateException("DB_PASSWORD must be provided via environment variable");
+        }
 
-        String envPass = System.getenv("DB_PASSWORD");
-        String password = (envPass != null) ? envPass : DEFAULT_PASSWORD;
-
-        // Log the connection target (safely hiding the password if included in URL)
-        System.out.println("[DB] Initializing HikariCP connection pool...");
-        System.out.println("[DB] Target URL: " + url.replaceAll(":[^@]+@", ":****@"));
+        System.out.println("[DB] Connecting to: " + url.replaceAll(":[^:]+@", ":****@"));
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
@@ -32,12 +39,11 @@ public class DatabaseConnection {
         config.setPassword(password);
         config.setDriverClassName("org.postgresql.Driver");
 
-        // Connection pool tuning configurations
-        config.setMaximumPoolSize(20); // Reuse up to 20 connections concurrently
+        config.setMaximumPoolSize(20);
         config.setMinimumIdle(5);
-        config.setIdleTimeout(300000); // 5 minutes
-        config.setConnectionTimeout(20000); // 20 seconds timeout to prevent hanging calls
-        config.setLeakDetectionThreshold(5000); // 5 seconds leak detection logger
+        config.setIdleTimeout(300000);
+        config.setConnectionTimeout(20000);
+        config.setLeakDetectionThreshold(5000);
 
         dataSource = new HikariDataSource(config);
     }

@@ -23,8 +23,9 @@ public class CallServlet extends HttpServlet {
         activeSimulators.remove(msisdn);
     }
 
+    // CORS — restricted to same host, dashboard is served from the same origin
     private void setCorsHeaders(HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", "*");
+        resp.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
         resp.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
     }
@@ -53,6 +54,7 @@ public class CallServlet extends HttpServlet {
                 obj.addProperty("msisdn", info.getMsisdn());
                 obj.addProperty("startTime", info.getStartTime());
                 obj.addProperty("elapsedMinutes", info.getElapsedMinutes());
+                obj.addProperty("startTimeEpoch", info.getStartTimeEpoch());
                 obj.addProperty("udpPort", info.getUdpPort());
                 obj.addProperty("callType", info.getCallType());
                 obj.addProperty("currentBalance", info.getCurrentBalance());
@@ -220,6 +222,7 @@ class WebCallSimulator implements Runnable {
     private LocalDateTime startTime;
     private int elapsedMinutes = 0;
     private volatile boolean active = true;
+    private String callResultOverride = null;
 
     public WebCallSimulator(String msisdn, double balance) {
         this.msisdn = msisdn;
@@ -229,6 +232,7 @@ class WebCallSimulator implements Runnable {
 
     public void hangup() {
         this.active = false;
+        this.callResultOverride = "User Hang Up";
     }
 
     @Override
@@ -238,7 +242,7 @@ class WebCallSimulator implements Runnable {
         
         try {
             while (active) {
-                // Deduct 1.0 L.E. every 5 seconds (accelerated mock charging)
+                // 1 L.E. per real minute — same as the SIP/RTP path in CallSession
                 elapsedMinutes++;
                 deductBalance(msisdn, 1.0);
                 currentBalance -= 1.0;
@@ -249,13 +253,14 @@ class WebCallSimulator implements Runnable {
                 if (currentBalance <= 0) {
                     System.out.println("[WebSim " + msisdn + "] Balance exhausted. Ending call.");
                     active = false;
+                    callResultOverride = "Depleted";
                     break;
                 }
                 
-                Thread.sleep(5000); // 5 seconds representing 1 minute
+                Thread.sleep(60000); // 1 real minute
             }
         } catch (InterruptedException e) {
-            // Exit
+            callResultOverride = "Call Aborted";
         } finally {
             MSC.activeSessions.remove(msisdn);
             CallServlet.removeSimulator(msisdn);
@@ -291,7 +296,14 @@ class WebCallSimulator implements Runnable {
         LocalDateTime endTime = LocalDateTime.now();
         double cost = elapsedMinutes * 1.0;
         double finalBalance = getFinalBalance(msisdn);
-        String callResult = "Normal call Clearing";
+        String callResult;
+        if (callResultOverride != null) {
+            callResult = callResultOverride;
+        } else if (elapsedMinutes == 0) {
+            callResult = "Cancelled";
+        } else {
+            callResult = "Normal call Clearing";
+        }
 
         String insertQuery = "INSERT INTO CDRs (msisdn, start_time, end_time, duration_mins, cost, result, final_balance) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
