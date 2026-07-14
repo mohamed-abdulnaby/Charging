@@ -541,7 +541,9 @@
       const statusClass = user.balance > 10 ? 'active' : user.balance > 0 ? 'low' : 'depleted';
       const statusLabel = user.balance > 10 ? 'Active' : user.balance > 0 ? 'Low' : 'Depleted';
       const formattedBalance = user.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      const isCalling = activeCalls.some(c => c.msisdn === user.msisdn);
+      const activeCall = activeCalls.find(c => c.msisdn === user.msisdn);
+      const isCalling = !!activeCall;
+      const isSipCall = activeCall && activeCall.callType === 'SIP';
 
       const existingRow = existingRows[String(user.id)];
 
@@ -567,18 +569,24 @@
           }
         }
 
-        // Simulate / Hang Up button
+        // Simulate / Hang Up / SIP Call button
         const actionsDiv = existingRow.querySelector('.actions-cell');
         if (actionsDiv) {
           const firstBtn = actionsDiv.querySelector('button:first-child');
           const wasHangup  = firstBtn && firstBtn.classList.contains('btn-danger') && firstBtn.textContent.includes('Hang');
+          const wasSipCall = firstBtn && firstBtn.classList.contains('btn-ghost') && firstBtn.textContent.includes('SIP');
           const wasSimulate = firstBtn && firstBtn.classList.contains('btn-success');
-          const wasDisabled = firstBtn && firstBtn.disabled;
-          const needsHangup  = isCalling;
+          const wasDisabled = firstBtn && firstBtn.disabled && !wasSipCall;
+
+          const needsHangup  = isCalling && !isSipCall;
+          const needsSipCall = isCalling && isSipCall;
           const needsSimulate = !isCalling && user.balance > 0;
           const needsDisabled = !isCalling && user.balance <= 0;
+
           if (needsHangup && !wasHangup) {
             firstBtn.outerHTML = `<button class="btn btn-danger btn-sm" onclick="hangupCall('${user.msisdn}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 15.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/><path d="M19 12v-2a2 2 0 0 0-2-2h-2"/><path d="M2 2l20 20"/></svg> Hang Up</button>`;
+          } else if (needsSipCall && !wasSipCall) {
+            firstBtn.outerHTML = `<button class="btn btn-ghost btn-sm" disabled style="opacity:0.65; cursor:not-allowed; border:1px solid rgba(255,255,255,0.08);" title="SIP calls must be hung up from the softphone"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.08 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 14.92z"/></svg> SIP Call</button>`;
           } else if (needsSimulate && !wasSimulate) {
             firstBtn.outerHTML = `<button class="btn btn-success btn-sm" onclick="startSimulation('${user.msisdn}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.08 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 14.92z"/></svg> Simulate</button>`;
           } else if (needsDisabled && !wasDisabled) {
@@ -588,11 +596,18 @@
 
       } else {
         // ── Insert brand-new row ──
-        let simButtonHtml = isCalling
-          ? `<button class="btn btn-danger btn-sm" onclick="hangupCall('${user.msisdn}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 15.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/><path d="M19 12v-2a2 2 0 0 0-2-2h-2"/><path d="M2 2l20 20"/></svg> Hang Up</button>`
-          : user.balance > 0
+        let simButtonHtml;
+        if (isCalling) {
+          if (isSipCall) {
+            simButtonHtml = `<button class="btn btn-ghost btn-sm" disabled style="opacity:0.65; cursor:not-allowed; border:1px solid rgba(255,255,255,0.08);" title="SIP calls must be hung up from the softphone"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.08 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 14.92z"/></svg> SIP Call</button>`;
+          } else {
+            simButtonHtml = `<button class="btn btn-danger btn-sm" onclick="hangupCall('${user.msisdn}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 15.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/><path d="M19 12v-2a2 2 0 0 0-2-2h-2"/><path d="M2 2l20 20"/></svg> Hang Up</button>`;
+          }
+        } else {
+          simButtonHtml = user.balance > 0
             ? `<button class="btn btn-success btn-sm" onclick="startSimulation('${user.msisdn}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.08 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 14.92z"/></svg> Simulate</button>`
             : `<button class="btn btn-ghost btn-sm" disabled style="opacity:0.4;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.08 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 14.92z"/></svg> Simulate</button>`;
+        }
         const callingBadge = isCalling
           ? ' <span class="calling-badge"><span class="pulse-indicator"></span> Calling</span>' : '';
 

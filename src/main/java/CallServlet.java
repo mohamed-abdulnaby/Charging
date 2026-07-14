@@ -70,7 +70,7 @@ public class CallServlet extends HttpServlet {
 
         } else if (pathInfo.equals("/cdr")) {
             JsonArray cdrArray = new JsonArray();
-            String query = "SELECT msisdn, start_time, end_time, duration_mins, cost, result, final_balance FROM CDRs ORDER BY id DESC LIMIT 15";
+            String query = "SELECT msisdn, start_time, end_time, duration_mins, cost, result, final_balance FROM CDRs ORDER BY id DESC LIMIT 100";
             try (Connection conn = DatabaseConnection.getConnection();
                  Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(query)) {
@@ -100,10 +100,18 @@ public class CallServlet extends HttpServlet {
                  Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(query)) {
 
-                double totalRevenue = 0.0;
+                double settledRevenue = 0.0;
                 if (rs.next()) {
-                    totalRevenue = rs.getDouble("total");
+                    settledRevenue = rs.getDouble("total");
                 }
+
+                // Add real-time active calls cost (1.0 L.E. per elapsed minute)
+                double activeRevenue = 0.0;
+                for (CallSessionInfo info : MSC.activeSessions.values()) {
+                    activeRevenue += info.getElapsedMinutes() * 1.0;
+                }
+
+                double totalRevenue = settledRevenue + activeRevenue;
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.getWriter().write("{\"totalRevenue\":" + totalRevenue + "}");
 
