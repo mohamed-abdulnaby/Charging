@@ -186,6 +186,32 @@
                   <!-- CDR rows -->
                 </tbody>
               </table>
+          </div>
+
+          <!-- Voice Call Recordings Panel -->
+          <div class="glass-panel recordings-panel" style="margin-top: 24px;">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>Voice Call Recordings</h2>
+              </div>
+            </div>
+            <div class="table-scroll-wrapper" style="max-height: 250px; overflow-y: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Subscriber</th>
+                    <th>Date & Time</th>
+                    <th>Size</th>
+                    <th>Listen / Download</th>
+                  </tr>
+                </thead>
+                <tbody id="recordings-tbody">
+                  <!-- Recording rows -->
+                </tbody>
+              </table>
+              <div class="recordings-empty" id="recordings-empty" style="text-align:center;color:var(--text-muted);padding:32px;font-style:italic;">
+                No call recordings found.
+              </div>
             </div>
           </div>
 
@@ -286,6 +312,7 @@
     loadUsers();
     loadCdrHistory();
     loadRevenue();
+    loadRecordings();
     document.getElementById('search-input').addEventListener('input', handleSearch);
 
     // Start periodic polling for active calls (every 2 seconds)
@@ -360,6 +387,12 @@
       } catch (err) {
         console.error('Telemetry refresh error:', err);
       }
+    }
+    // Always poll recordings (every 5 seconds)
+    try {
+      await loadRecordings();
+    } catch (err) {
+      console.error('Recordings refresh error:', err);
     }
   }
 
@@ -493,6 +526,7 @@
       showToast(`Simulation ended for ${msisdn}`, 'success');
       await pollActiveCalls();
       await loadCdrHistory();
+      await loadRecordings();
     } catch (err) {
       console.error(err);
       showToast('Failed to hang up call', 'error');
@@ -735,6 +769,48 @@
       tbody.insertAdjacentHTML('afterbegin', newRows.map(_cdrRowHtml).join(''));
       _knownCdrKey = cdrs[0].msisdn + cdrs[0].startTime;
     }
+  }
+
+  // ——— Voice Recordings ———
+  async function loadRecordings() {
+    try {
+      const res = await fetch('/api/calls/recordings');
+      if (!res.ok) throw new Error('Failed to load recordings');
+      const recs = await res.json();
+      renderRecordingsTable(recs);
+    } catch (err) {
+      console.error('Error loading recordings:', err);
+    }
+  }
+
+  function renderRecordingsTable(recs) {
+    const tbody = document.getElementById('recordings-tbody');
+    const emptyState = document.getElementById('recordings-empty');
+    if (!tbody || !emptyState) return;
+
+    if (recs.length === 0) {
+      tbody.innerHTML = '';
+      emptyState.style.display = 'block';
+      return;
+    }
+
+    emptyState.style.display = 'none';
+    tbody.innerHTML = recs.map(rec => {
+      const formattedSize = (rec.size / 1024).toFixed(1) + ' KB';
+      const msisdn = rec.msisdn || 'Unknown';
+      const dateTime = (rec.date && rec.time) ? `${rec.date} ${rec.time}` : 'Unknown';
+      return `<tr>
+        <td style="font-family:var(--font-mono);font-weight:600;color:var(--text-primary);">${escapeHtml(msisdn)}</td>
+        <td style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono);">${escapeHtml(dateTime)}</td>
+        <td style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);">${formattedSize}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <audio controls src="/api/calls/recordings/play?file=${escapeHtml(rec.filename)}" style="height:28px; width:180px;"></audio>
+            <a href="/api/calls/recordings/play?file=${escapeHtml(rec.filename)}" download="${escapeHtml(rec.filename)}" class="btn btn-ghost btn-sm btn-icon-only" title="Download recording" style="font-size:0.85rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
   }
 
   // ——— Search ———

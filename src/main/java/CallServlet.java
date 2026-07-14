@@ -3,6 +3,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.File;
 import java.io.BufferedReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -118,6 +119,67 @@ public class CallServlet extends HttpServlet {
             } catch (Exception e) {
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 resp.getWriter().write("{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        } else if (pathInfo.equals("/recordings")) {
+            JsonArray recArray = new JsonArray();
+            File tmpDir = new File("/tmp");
+            File[] files = tmpDir.listFiles((dir, name) -> name.startsWith("voice_call_msisdn_") && name.endsWith(".wav"));
+            if (files != null) {
+                java.util.Arrays.sort(files, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
+                for (File file : files) {
+                    JsonObject obj = new JsonObject();
+                    obj.addProperty("filename", file.getName());
+                    obj.addProperty("size", file.length());
+                    
+                    String name = file.getName();
+                    try {
+                        String[] parts = name.split("_");
+                        if (parts.length >= 12) {
+                            String msisdn = parts[3];
+                            String dateStr = parts[5] + "-" + parts[6] + "-" + parts[7];
+                            String timeStr = parts[9] + ":" + parts[10] + ":" + parts[11].replace(".wav", "");
+                            obj.addProperty("msisdn", msisdn);
+                            obj.addProperty("date", dateStr);
+                            obj.addProperty("time", timeStr);
+                        }
+                    } catch (Exception ignored) {}
+                    recArray.add(obj);
+                }
+            }
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.getWriter().write(recArray.toString());
+
+        } else if (pathInfo.equals("/recordings/play")) {
+            String fileName = req.getParameter("file");
+            if (fileName == null || fileName.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("{\"error\":\"Missing file parameter\"}");
+                return;
+            }
+            if (fileName.contains("/") || fileName.contains("\\") || fileName.contains("..") ||
+                !fileName.startsWith("voice_call_msisdn_") || !fileName.endsWith(".wav")) {
+                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                resp.getWriter().write("{\"error\":\"Access denied\"}");
+                return;
+            }
+            
+            File file = new File("/tmp", fileName);
+            if (!file.exists()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write("{\"error\":\"File not found\"}");
+                return;
+            }
+            
+            resp.setContentType("audio/wav");
+            resp.setContentLengthLong(file.length());
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(file);
+                 java.io.OutputStream os = resp.getOutputStream()) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = fis.read(buffer)) != -1) {
+                    os.write(buffer, 0, bytesRead);
+                }
+            } catch (Exception ignored) {
             }
         } else {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
